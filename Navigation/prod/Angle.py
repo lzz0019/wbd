@@ -1,3 +1,9 @@
+'''
+Created on Sep 4, 2016
+
+@author: lzz0019
+'''
+
 import math
 from __builtin__ import str
 
@@ -9,7 +15,7 @@ class Angle():
         if degrees is None:
             degrees = 0.0      
         if(not(isinstance(degrees, int and float))):
-            raise ValueError
+            raise ValueError("Angle      setDegrees:  The input should be an integer or a float!")
         self.angle = degrees % 360.0
         return round(self.angle, 1)  
     
@@ -17,15 +23,15 @@ class Angle():
         separator = "d"
         index = angleString.find(separator)
         if index == -1:
-            raise ValueError
+            raise ValueError("Angle      setDegreesAndMinutes:  Missing separator!")
         X = angleString[:index]  # degree as substring
         Y = angleString[(index + 1):]  # minutes as substring
         # now need to determine if X is legal? if illegal, raise a ValueError
         if self.isLegal_X(X) == False:
-            raise ValueError
+            raise ValueError("Angle      setDegreesAndMinutes:  Degree portion of angleString is illegal!")
         # now need to determine if Y is legal? if illegal, raise a ValueError
         if self.isLegal_Y(Y) == False:
-            raise ValueError
+            raise ValueError("Angle      setDegreesAndMinutes:  Minute portion of angleString is illegal!")
         # if both legal, set the degree&minutes, return value as format"45.0" 
         degree = int(X)
         minutes = float(Y)
@@ -53,19 +59,19 @@ class Angle():
         
     def add(self, angle):
         if not(isinstance(angle, Angle)):
-            raise ValueError
+            raise ValueError("Angle      add:  angle is not an instance of Angle!")
         self.angle = (self.angle + angle.angle) % 360.0
         return self.angle
     
     def subtract(self, angle):
         if not(isinstance(angle, Angle)):
-            raise ValueError
+            raise ValueError("Angle      add:  angle is not an instance of Angle!")
         self.angle = (self.angle - angle.angle) % 360.0
         return self.angle
     
     def compare(self, angle):
         if not(isinstance(angle, Angle)):
-            raise ValueError
+            raise ValueError("Angle      compare:  angle is not an instance of Angle!")
         if self.angle < angle.angle:
             return -1
         elif self.angle == angle.angle:
