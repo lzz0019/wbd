@@ -61,8 +61,47 @@ class TCurve(object):
         result = base ** exponent
         return result
     
+# define a simpler integral f(u,n)
+    def simple_f1(self,u,n):
+        return u
+    
+    def simple_f2(self,u,n):
+        return u**2
+    
+    def simple_f3(self, u, n):
+        return u**6
+    
+    def simple_f4(self,u,n):
+        return u**100
+    
     def integrate(self, t, n, f):
-        pass
+        highBound=t 
+        lowBound=0
+        epsilon=0.001
+        simpsonOld=0
+        simpsonNew=epsilon
+        s=4
+        while(abs( (simpsonNew-simpsonOld)/simpsonNew) >epsilon):
+            simpsonOld=simpsonNew
+            w= (highBound-lowBound)/s 
+            termNum=1
+            simpsonNew=0
+            for termNum in range(1,s+1):
+                if(termNum==1 or termNum==s+1):
+                    simpsonNew += (w/3)*f(lowBound+ (termNum-1)*w,n)
+                    termNum=termNum+1
+                elif((termNum%2)==0):
+                    simpsonNew+= (w/3)*4*f(lowBound+(termNum-1)*w,n)
+                    termNum=termNum+1
+                else:
+                    simpsonNew+= (w/3)*2*f(lowBound+(termNum-1)*w,n)
+                    termNum=termNum+1
+            s=s*2
+        return simpsonNew
+                    
+                
+                    
+                    
         
         
     
