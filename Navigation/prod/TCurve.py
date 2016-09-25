@@ -84,18 +84,14 @@ class TCurve(object):
         while(abs( (simpsonNew-simpsonOld)/simpsonNew) >epsilon):
             simpsonOld=simpsonNew
             w= (highBound-lowBound)/s 
-            termNum=1
             simpsonNew=0
-            for termNum in range(1,s+1):
+            for termNum in range(1,s+2):
                 if(termNum==1 or termNum==s+1):
                     simpsonNew += (w/3)*f(lowBound+ (termNum-1)*w,n)
-                    termNum=termNum+1
                 elif((termNum%2)==0):
                     simpsonNew+= (w/3)*4*f(lowBound+(termNum-1)*w,n)
-                    termNum=termNum+1
                 else:
                     simpsonNew+= (w/3)*2*f(lowBound+(termNum-1)*w,n)
-                    termNum=termNum+1
             s=s*2
         return simpsonNew
                     
