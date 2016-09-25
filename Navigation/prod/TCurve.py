@@ -74,27 +74,27 @@ class TCurve(object):
     def simple_f4(self,u,n):
         return u**100
     
-#     def integrate(self, t, n, f):
-#         highBound=t 
-#         lowBound=0
-#         epsilon=0.001
-#         simpsonOld=0
-#         simpsonNew=epsilon
-#         s=4
-#         while(abs( (simpsonNew-simpsonOld)/simpsonNew) >epsilon):
-#             simpsonOld=simpsonNew
-#             w= (highBound-lowBound)/s 
-#             simpsonNew=0
-#             for termNum in range(1,s+2):
-#                 if(termNum==1 or termNum==s+1):
-#                     simpsonNew += (w/3)*f(lowBound+ (termNum-1)*w,n)
-#                 elif((termNum%2)==0):
-#                     simpsonNew+= (w/3)*4*f(lowBound+(termNum-1)*w,n)
-#                 else:
-#                     simpsonNew+= (w/3)*2*f(lowBound+(termNum-1)*w,n)
-#             s=s*2
-#         return simpsonNew
-#                     
+    def integrate(self, t, n, f):
+        highBound=t 
+        lowBound=0
+        epsilon=0.001
+        simpsonOld=0
+        simpsonNew=epsilon
+        s=4
+        while(abs( (simpsonNew-simpsonOld)/simpsonNew) >epsilon):
+            simpsonOld=simpsonNew
+            w= (highBound-lowBound)/s 
+            simpsonNew=0
+            for termNum in range(1,s+2):
+                if(termNum==1 or termNum==s+1):
+                    simpsonNew += (w/3)*f(lowBound+ (termNum-1)*w,n)
+                elif((termNum%2)==0):
+                    simpsonNew+= (w/3)*4*f(lowBound+(termNum-1)*w,n)
+                else:
+                    simpsonNew+= (w/3)*2*f(lowBound+(termNum-1)*w,n)
+            s=s*2
+        return simpsonNew
+                     
                 
                     
                     
