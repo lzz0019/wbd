@@ -85,7 +85,7 @@ class TCurve(object):
             simpsonOld=simpsonNew
             w= (highBound-lowBound)/s 
             simpsonNew=0
-            for termNum in range(1,s+1):
+            for termNum in range(1,s+2):
                 if(termNum==1 or termNum==s+1):
                     simpsonNew += (w/3)*f(lowBound+ (termNum-1)*w,n)
                 elif((termNum%2)==0):
