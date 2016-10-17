@@ -1,0 +1,27 @@
+
+Start of log
+Start of sighting file test1.xml
+Aldebaran	2016-03-01	23:40:01	15d6.0
+Beck	2016-03-02	00:05:05	45d12.0
+Peacock	2016-03-02	00:05:05	45d12.0
+End of sighting file test1.xml
+Start of log
+Start of sighting file test1.xml
+Start of log
+Start of sighting file test1.xml
+Aldebaran	2016-03-01	23:40:01	15d6.0
+Beck	2016-03-02	00:05:05	45d12.0
+Peacock	2016-03-02	00:05:05	45d12.0
+End of sighting file test1.xml
+Start of log
+Start of sighting file test1.xml
+Aldebaran	2016-03-01	23:40:01	15d6.0
+Beck	2016-03-02	00:05:05	45d12.0
+Peacock	2016-03-02	00:05:05	45d12.0
+End of sighting file test1.xml
+Start of log
+Start of sighting file test1.xml
+Aldebaran	2016-03-01	23:40:01	15d6.0
+Beck	2016-03-02	00:05:05	45d12.0
+Peacock	2016-03-02	00:05:05	45d12.0
+End of sighting file test1.xml

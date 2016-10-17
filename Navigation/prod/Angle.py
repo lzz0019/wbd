@@ -6,7 +6,6 @@ Created on Sep 4, 2016
 
 import math
 from __builtin__ import str
-from scipy.constants.constants import degree
 
 class Angle():
     def __init__(self):
@@ -37,7 +36,7 @@ class Angle():
         # if both legal, set the degree&minutes, return value as format"45.0" 
         degree = int(X)
         minutes = float(Y)
-        self.angle = degree % 360 + minutes / 60
+        self.angle = (degree % 360)+ (minutes / 60)
         return self.angle
     
     def isLegal_X(self, X):

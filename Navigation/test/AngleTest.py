@@ -117,9 +117,10 @@ class AngleTest(unittest.TestCase):
           
 #     def test300_030_ShouldReturnDegreesWithRounding(self):
 #         anAngle = Angle.Angle()
-#         anAngle.setDegrees(0 + 10.46/60.0)
+#         result=anAngle.setDegrees(0 + 10.46/60.0)
+#         print "result=",result
 #         self.assertAlmostEquals(10.5/60.0, anAngle.getDegrees(),places=4)  
-#             
+             
 #     def test300_040_ShouldReturnModuloDegreesWithRounding(self):         
 #         anAngle = Angle.Angle()
 #         anAngle.setDegrees(360 + 10.46/60.0)
