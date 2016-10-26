@@ -52,7 +52,8 @@ class FixTest(unittest.TestCase):
         for line in reversed(open(logFileName).readlines()):
             string=line.rstrip()
             break
-        self.assertEqual(string, "Start of log")
+        expectedString="Log file:"+"\t"+"/"+os.path.abspath(logFileName)
+        self.assertEqual(string, expectedString)
                    
 #    Sad Path
     def test100_910_ShouldRaiseExceptionOnViolatingParameterSpecification(self):
@@ -66,8 +67,6 @@ class FixTest(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             Fix.Fix("")
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
-  
-#    sad path---- file cannot be creatd or appended
   
 #-----------------------------------------------------------------
 #    Acceptance Test: 200
@@ -94,7 +93,8 @@ class FixTest(unittest.TestCase):
         for line in reversed(open(logFileName).readlines()):
             string=line.rstrip()
             break
-        self.assertEqual(string, "Start of sighting file 2.xml")
+        expectedString="Sighting file:"+"\t"+os.path.abspath(fixInstance.xmlFileName)
+        self.assertEqual(string, expectedString)
          
 #    sad path
     def test200_910_ShouldRaiseExceptionFileNameViolateParameterSpecification(self):
@@ -140,5 +140,97 @@ class FixTest(unittest.TestCase):
         fixInstance.setSightingFile("test1.xml")
         self.assertEqual(fixInstance.getSightings(),("0d0.0","0d0.0"))
         
+#    Sad Path     ?????
+#     def test300_910_ShouldRaiseExceptionSightingFileHasNotBeenSet(self):
+#         fixInstance=Fix.Fix("test1.1")
+#         fixInstance.setAriesFile("aries.txt")
+#         fixInstance.setStarFile("stars.txt")
+#         expectedDiag = self.className + "getSightings: "
+#         with self.assertRaises(ValueError) as context:
+#             fixInstance.getSightings()
+#         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
         
+#-----------------------------------------------------------------
+#    Acceptance Test: 400
+#        Analysis - setAriesFile
+#    Happy Path   
+    def test400_010_ShouldReturnAbsoluteFilePath(self):
+        fixInstance=Fix.Fix("test2")
+        result=fixInstance.setAriesFile("aries.txt")
+        expectedString=os.path.abspath("aries.txt")
+        self.assertEqual(result,expectedString)
+    
+    def test400_020_ShouldWriteToTheLogFile(self):
+        fixInstance=Fix.Fix("test2")
+        fixInstance.setAriesFile("aries.txt")
+        logFileName=fixInstance.logFileName
+        for line in reversed(open(logFileName).readlines()):
+            string=line.rstrip()
+            break
+        expectedString="Aries file:"+"\t"+os.path.abspath("aries.txt")
+        self.assertEqual(string, expectedString)
+                
+#    Sad Path  
+    def test400_910_ShouldRaiseExceptionFileNameIsNotAString(self):     
+        fixInstance=Fix.Fix()
+        expectedDiag = self.className + "setAriesFile: "
+        with self.assertRaises(ValueError) as context:
+            fixInstance.setAriesFile(1)
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    
+    def test400_920_ShouldRaiseExceptionFileNameLessThanOne(self):     
+        fixInstance=Fix.Fix()
+        expectedDiag = self.className + "setAriesFile: "
+        with self.assertRaises(ValueError) as context:
+            fixInstance.setAriesFile(".txt")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])
+        
+    def test400_930_ShouldRaiseExceptionFileNameNoExtension(self):     
+        fixInstance=Fix.Fix()
+        expectedDiag = self.className + "setAriesFile: "
+        with self.assertRaises(ValueError) as context:
+            fixInstance.setAriesFile("ariesFileName")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])
+
+#-----------------------------------------------------------------
+#    Acceptance Test: 500
+#        Analysis - setStarFile
+#    Happy Path
+    def test500_010_ShouldReturnAbsoluteFilePath(self):
+        fixInstance=Fix.Fix("test3")
+        result=fixInstance.setStarFile("stars.txt")
+        expectedString=os.path.abspath("stars.txt")
+        self.assertEqual(result,expectedString)
+    
+    def test500_020_ShouldWriteToTheLogFile(self):
+        fixInstance=Fix.Fix("test3")
+        fixInstance.setStarFile("stars.txt")
+        logFileName=fixInstance.logFileName
+        for line in reversed(open(logFileName).readlines()):
+            string=line.rstrip()
+            break
+        expectedString="Star file:"+"\t"+os.path.abspath("stars.txt")
+        self.assertEqual(string, expectedString)
+        
+#    Sad Path  
+    def test500_910_ShouldRaiseExceptionFileNameIsNotAString(self):     
+        fixInstance=Fix.Fix()
+        expectedDiag = self.className + "setStarFile: "
+        with self.assertRaises(ValueError) as context:
+            fixInstance.setStarFile(1)
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)]) 
+    
+    def test500_920_ShouldRaiseExceptionFileNameLessThanOne(self):     
+        fixInstance=Fix.Fix()
+        expectedDiag = self.className + "setStarFile: "
+        with self.assertRaises(ValueError) as context:
+            fixInstance.setStarFile(".txt")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])
+        
+    def test500_930_ShouldRaiseExceptionFileNameNoExtension(self):     
+        fixInstance=Fix.Fix()
+        expectedDiag = self.className + "setStarFile: "
+        with self.assertRaises(ValueError) as context:
+            fixInstance.setStarFile("starFile")
+        self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)])
         

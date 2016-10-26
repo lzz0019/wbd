@@ -175,5 +175,12 @@ class Fix():
             stringToWrite=bodyValue+"\t"+dateValue+"\t"+tiemValue+"\t"+adjstAltiValue+"\n"
             self.logFileObject.write(stringToWrite)           
         self.logFileObject.close()
-        
+    
+    def setAriesFile(self,ariesFile):  
+        self.ariesFile=ariesFile
+        pass  
+    
+    def setStarFile(self,starFile):
+        self.starFile=starFile
+        pass
         

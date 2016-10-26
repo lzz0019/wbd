@@ -17,7 +17,10 @@ class Angle():
         elif(not isinstance(degrees, int)  and not isinstance(degrees, float)):
             raise ValueError("Angle.setDegrees: The input should be an integer or a float!")
         else:
-            self.angle = degrees % 360.0
+            self.angle=degrees%360.0
+            degree=int(self.angle)
+            minute=round((self.angle-degree)*60,1)
+            self.angle = degree +minute/60.0
         return self.angle 
     
     def setDegreesAndMinutes(self, angleString):
@@ -36,7 +39,10 @@ class Angle():
         # if both legal, set the degree&minutes, return value as format"45.0" 
         degree = int(X)
         minutes = float(Y)
-        self.angle = (degree % 360)+ (minutes / 60)
+        if degree<0:
+            self.angle =  int ((degree + minutes / 60) % 360) - minutes % 60 / 60.0
+        else:
+            self.angle =  int ((degree + minutes / 60) % 360) + minutes % 60 / 60.0
         return self.angle
     
     def isLegal_X(self, X):
@@ -94,5 +100,9 @@ class Angle():
         return string
     
     def getDegrees(self):
-        return self.angle
+#         integerPart=int(self.angle)
+#         floatPart=round((self.angle-integerPart),1)
+#         result=integerPart+floatPart
+#         return result
+          return self.angle
     
