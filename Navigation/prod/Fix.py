@@ -32,7 +32,7 @@ class Fix():
             self.logFileName=logFile
         try:
             self.logFileObject=open(self.logFileName,"a")
-            self.logFileObject.write("Start of log\n")
+            self.logFileObject.write("Log file:"+" "+os.path.abspath(self.logFileName)+"\n")
             self.logFileObject.close()
         except ValueError:
             raise ValueError("Fix.__init__:  logFile cannot be created or appended!")
@@ -53,7 +53,7 @@ class Fix():
             
             try:
                 self.logFileObject=open(self.logFileName, "a")
-                self.logFileObject.write("Start of sighting file "+self.xmlFileName+"\n")
+                self.logFileObject.write("Sighting file:"+" " + os.path.abspath(self.xmlFileName)+"\n")
                 self.logFileObject.close()
                 return self.xmlFileName
             except ValueError:
@@ -240,10 +240,38 @@ class Fix():
         self.logFileObject.close()
     
     def setAriesFile(self,ariesFile):  
-        self.ariesFile=ariesFile
-        pass  
+        if(not isinstance(ariesFile, str)):
+            raise ValueError("Fix.setAriesFile:  the file name should be a string!")
+        elif not(ariesFile.endswith(".txt")):
+            raise ValueError("Fix.setAriesFile:  the file name should have .txt extension!")
+        elif len(ariesFile.split(".")[0])<1:
+            raise ValueError("Fix.setAriesFile:  the file name should have length>=1")
+        else:    
+            self.ariesFile=ariesFile
+            absoluteFilePath=os.path.abspath(self.ariesFile)
+            try:
+                self.logFileObject=open(self.logFileName,"a")
+                self.logFileObject.write("Aries file:"+" "+os.path.abspath(self.ariesFile)+"\n")
+                self.logFileObject.close()
+            except ValueError:
+                raise ValueError("Fix.setAriesFile:  logFile cannot be opened!")
+        return absoluteFilePath
     
     def setStarFile(self,starFile):
-        self.starFile=starFile
-        pass
+        if(not isinstance(starFile, str)):
+            raise ValueError("Fix.setStarFile:  the file name should be a string!")
+        elif not(starFile.endswith(".txt")):
+            raise ValueError("Fix.setStarFile:  the file name should have .txt extension!")
+        elif len(starFile.split(".")[0])<1:
+            raise ValueError("Fix.setStarFile:  the file name should have length>=1")
+        else:
+            self.starFile=starFile
+            absoluteFilePath=os.path.abspath(self.starFile)
+            try:
+                self.logFileObject=open(self.logFileName,"a")
+                self.logFileObject.write("Star file:"+" "+os.path.abspath(self.starFile)+"\n")
+                self.logFileObject.close()
+            except ValueError:
+                raise ValueError("Fix.setStarFile:  logFile cannot be opened!")
+        return absoluteFilePath
         
