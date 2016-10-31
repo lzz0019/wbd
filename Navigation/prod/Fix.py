@@ -4,20 +4,32 @@ Created on Oct 7, 2016
 @author: lzz0019
 '''
 import math
+import time
+import os.path
 import xml.dom.minidom
 import Navigation.prod.Angle as Angle
 
-from __builtin__ import str
+from __builtin__ import str, False
+from _ast import Str
 
-class Fix():
+class Fix():    
+    
     def __init__(self, logFile=None):
+        self.logFileName=None
+        self.logFileObject=None
+        self.approximateLatitude=None
+        self.approximateLongitude=None
+        self.ariesFile=None
+        self.starFile=None
+        self.xmlFileName=None
+        self.xmlFileObject=None
+                
         if logFile is None:
             self.logFileName="log.txt"
         elif self.invalidLogFileName(logFile) is True:
             raise ValueError("Fix.__init__:  violate parameter specification!")
         else:
-            self.logFileName=logFile+ ".txt"
-       
+            self.logFileName=logFile
         try:
             self.logFileObject=open(self.logFileName,"a")
             self.logFileObject.write("Start of log\n")
@@ -31,43 +43,54 @@ class Fix():
         else:
             return True                                     # this is a wrong parameter
         
-    def setSightingFile(self,sightingFile):
-        if self.invalidXmlFileName(sightingFile) is True:
+    def setSightingFile(self,sightingFile=None):
+        if sightingFile is None:
+            raise ValueError("Fix.setSightingFile:  missing file name!") 
+        elif self.invalidXmlFileName(sightingFile) is True:
             raise ValueError("Fix.setSightingFile:  invalid xml file name!")
         else:           
             self.xmlFileName=sightingFile
-            self.logFileObject=open(self.logFileName, "a")
-            self.logFileObject.write("Start of sighting file "+self.xmlFileName+"\n")
-            self.logFileObject.close()
-            return self.xmlFileName
-        
+            
+            try:
+                self.logFileObject=open(self.logFileName, "a")
+                self.logFileObject.write("Start of sighting file "+self.xmlFileName+"\n")
+                self.logFileObject.close()
+                return self.xmlFileName
+            except ValueError:
+                raise ValueError("Fix.setSightingFile:  cannot open log file!")
+                 
     def invalidXmlFileName(self, sightingFile):
-        if not(sightingFile.endswith(".xml")):              # if not end with .xml => invalid file name
+        if (not isinstance(sightingFile, str)):
+            return True
+        elif not(sightingFile.endswith(".xml")):              # if not end with .xml => invalid file name
             return True
         elif len(sightingFile)<5:
             return True
-        else:
+        elif os.path.isfile(sightingFile) is False:
+            return True
+        else:    
             try:
                 self.xmlFileObject=open(sightingFile,"r")
                 self.xmlFileObject.close()
+                return False
             except ValueError:
                 raise ValueError("Fix.setSightingFile:  xml file cannot be opened!")
-            else:
-                return False
     
     def getSightings(self):
-        self.approximateLatitude="0d0.0"
-        self.approximateLongitude="0d0.0"       
-        tree=self.buildDOM(self.xmlFileName)
-        
-        sightingDict=self.extractSighting(tree)
-                 
-        updatedDict=self.adjustedAltitude(sightingDict)
-        self.writeToLog(updatedDict) 
-        self.logFileObject=open(self.logFileName,"a")
-        self.logFileObject.write("End of sighting file "+self.xmlFileName+"\n") 
-        self.logFileObject.close()
-        return (self.approximateLatitude, self.approximateLongitude)        
+        if self.xmlFileName is None:
+            raise ValueError("Fix.getSightings:  xml file has not been set!")
+        else:
+            self.approximateLatitude="0d0.0"
+            self.approximateLongitude="0d0.0"   
+            tree=self.buildDOM(self.xmlFileName)
+            sightingDict=self.extractSighting(tree)  
+            updatedDict=self.adjustedAltitude(sightingDict)
+            self.writeToLog(updatedDict) 
+            self.logFileObject=open(self.logFileName,"a")
+            self.logFileObject.write("End of sighting file "+self.xmlFileName+"\n") 
+            self.logFileObject.close()
+            result=(self.approximateLatitude, self.approximateLongitude) 
+            return result       
             
     def buildDOM(self, fileName):
         DOMTree=xml.dom.minidom.parse(fileName)
@@ -82,18 +105,26 @@ class Fix():
             attributeDict={}
             sightingDict[i]=attributeDict
             body=self.extractElement("body", sighting)
-            date=self.extractElement("date", sighting)           
-            time=self.extractElement("time", sighting)
+            date=self.extractElement("date", sighting)
+            if not self.isValidDate(date):
+                raise ValueError("Fix.getSightings: invalid date!")
+            timeStr=self.extractElement("time", sighting)
+            if not self.isValidTime(timeStr):
+                raise ValueError("Fix.getSightings: invalid time!")
             observation=self.extractElement("observation", sighting)
-            if (body==None) or (date==None) or (time==None) or (observation==None):
+            if not self.isValidObservation(observation):
+                raise ValueError("Fix.getSightings: invalid observation!")
+            if (body==None) or (date==None) or (timeStr==None) or (observation==None):
                 raise ValueError("Fix.getSightings:  mandatory tag is missing!")
             height=self.extractElement("height", sighting)
+#             if not self.isValidHeight(height):
+#                 raise ValueError("Fix.getSightings: invalid height!")
             temperature=self.extractElement("temperature", sighting)
             pressure=self.extractElement("pressure", sighting)
             horizon=self.extractElement("horizon", sighting)
             attributeDict['body']=body
             attributeDict['date']=date
-            attributeDict['time']=time
+            attributeDict['time']=timeStr
             attributeDict['observation']=observation
             if height is None:
                 attributeDict['height']=0
@@ -120,43 +151,75 @@ class Fix():
         tagList=sighting.getElementsByTagName(tag)
         if len(tagList)==0:
             value=None
+        elif tagList[0].firstChild==None:
+            value=None
         else:
             value=tagList[0].firstChild.nodeValue
         return value
+    
+    def isValidDate(self,date):
+        date=str(date)
+        try:
+            time.strptime(date, "%Y-%m-%d")
+            return True
+        except:
+            return False
+    
+    def isValidTime(self,timeStr):
+        timeStr=str(timeStr)
+        try:
+            time.strptime(timeStr, "%H:%M:%S")
+            return True
+        except:
+            return False
+    
+    def isValidObservation(self, observation):
+        observation=str(observation)
+        separator = "d"
+        index = observation.find(separator)
+        if index == -1:
+            return False
+        else:
+            return True
+        
+#     def isValidHeight(self,height):
+#         if height.isnumeric():
+#             return True
+#         else:
+#             return False
     
     def adjustedAltitude(self, sightingDict):
         for eachSighting in sightingDict:
             attributeDict=sightingDict.get(eachSighting)
             observation=attributeDict.get('observation')                    #observation value e.g "045d15.2"
             angleInstance=Angle.Angle()
-            observedAltitude=angleInstance.setDegreesAndMinutes(observation)
-            if observedAltitude<0.1:
+            observationFloat=angleInstance.setDegreesAndMinutes(observation)
+            if observationFloat<0.1:
                 raise ValueError("Fix.getSightings:  observed altitude is LT. 0.1arc-minutes!")         
             height=attributeDict.get('height')
-            horizon=attributeDict.get('horizon')      
+            horizon=attributeDict.get('horizon')    
             dip=self.calcDip(height,horizon)                # 1. calculate dip
             temperature=attributeDict.get('temperature')
             pressure=attributeDict.get('pressure')
-            refraction=self.calcRefraction(temperature,pressure,height)      # 2. calculate refraction
-            # 3. adjustedAltitude = observedAltitude + dip + refraction
-            
-            adjustedAltitude=round((observedAltitude+dip+refraction),1)
+            refraction=self.calcRefraction(temperature,pressure,observationFloat)      # 2. calculate refraction
+            # 3. adjustedAltitude = observationFloat + dip + refraction
+            adjustedAltitude= observationFloat+dip+refraction
             angleInstance.setDegrees(adjustedAltitude)
-            adjustedAltitudeFormat=angleInstance.getString()
+            adjustedAltitudeFormat=angleInstance.getString()      
             attributeDict['adjustedAltitude']=adjustedAltitudeFormat
         return sightingDict
         
-    def calcDip(self,height,horizon): 
-        if horizon=='Natural':
+    def calcDip(self,height,horizon):
+        if horizon=='natural':
             sqrtValue=math.sqrt(height)
             result=((-0.97)*sqrtValue)/60
         else:
             result=0
         return result
                
-    def calcRefraction(self,temperature,pressure,height):
-        celsius=(temperature - 32)*5/9
-        tangentALtitude=math.atan(height)
+    def calcRefraction(self,temperature,pressure,observationFloat):
+        celsius=(temperature - 32)*5.0/9 
+        tangentALtitude=math.tan(math.radians(observationFloat))
         refraction=(-0.00452)*pressure/(273+celsius)/tangentALtitude
         return refraction
              
