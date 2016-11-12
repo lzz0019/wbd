@@ -49,8 +49,7 @@ class Fix():
         elif self.invalidXmlFileName(sightingFile) is True:
             raise ValueError("Fix.setSightingFile:  invalid xml file name!")
         else:           
-            self.xmlFileName=sightingFile
-            
+            self.xmlFileName=sightingFile           
             try:
                 self.logFileObject=open(self.logFileName, "a")
                 self.logFileObject.write("Sighting file:"+" " + os.path.abspath(self.xmlFileName)+"\n")
@@ -83,7 +82,7 @@ class Fix():
             self.approximateLatitude="0d0.0"
             self.approximateLongitude="0d0.0"   
             tree=self.buildDOM(self.xmlFileName)
-            sightingDict=self.extractSighting(tree)  
+            sightingDict=self.extractSighting(tree) 
             updatedDict=self.adjustedAltitude(sightingDict)
             self.writeToLog(updatedDict) 
             self.logFileObject=open(self.logFileName,"a")
@@ -117,8 +116,6 @@ class Fix():
             if (body==None) or (date==None) or (timeStr==None) or (observation==None):
                 raise ValueError("Fix.getSightings:  mandatory tag is missing!")
             height=self.extractElement("height", sighting)
-#             if not self.isValidHeight(height):
-#                 raise ValueError("Fix.getSightings: invalid height!")
             temperature=self.extractElement("temperature", sighting)
             pressure=self.extractElement("pressure", sighting)
             horizon=self.extractElement("horizon", sighting)
@@ -128,21 +125,32 @@ class Fix():
             attributeDict['observation']=observation
             if height is None:
                 attributeDict['height']=0
+            elif not self.isValidHeight(height):
+                raise ValueError("Fix.getSightings: invalid height!")
             else:
                 attributeDict['height']=float(height)
+                
             if temperature is None:
                 attributeDict['temperature']=72
+            elif not self.isValidTemperature(temperature):
+                raise ValueError("Fix.getSightings: invalid temperature!")
             else:
                 attributeDict['temperature']=float(temperature)
+                
             if pressure is None:
                 attributeDict['pressure']=1010
+            elif not self.isValidPressure(pressure):
+                raise ValueError("Fix.getSightings: invalid pressure!")
             else:
                 attributeDict['pressure']=int(pressure)
+                
             if horizon is None:
                 attributeDict['horizon']="natural"
+            elif not self.isValidHorizon(horizon):
+                raise ValueError("Fix.getSightings: invalid horizon!")
             else:
                 attributeDict['horizon']=horizon
-            i=i+1            
+            i=i+1         
         return sightingDict
     
     def extractElement(self, tag, sighting):
@@ -182,11 +190,39 @@ class Fix():
         else:
             return True
         
-#     def isValidHeight(self,height):
-#         if height.isnumeric():
-#             return True
-#         else:
-#             return False
+    def isValidHeight(self,height):
+        height=str(height)
+        strHeight=height.replace(".","0")
+        if strHeight.isdigit():
+            return True
+        else:
+            return False
+    
+    def isValidTemperature(self,temperature):
+        temperature=str(temperature)
+        temperature=int(temperature)
+        if temperature<=120 and temperature>=-20:
+            return True
+        else:
+            return  False
+        
+    def isValidPressure(self,pressure):
+        pressure=str(pressure)
+        try:
+            pressure=int(pressure)
+            if pressure<=1100 and pressure>=100:
+                return True
+            else:
+                return False
+        except:
+            return False
+        
+    def isValidHorizon(self,horizon):
+        horizon=str(horizon)
+        if horizon.lower()=="artificial" or horizon.lower()=="natural":
+            return True
+        else:
+            return False
     
     def adjustedAltitude(self, sightingDict):
         for eachSighting in sightingDict:

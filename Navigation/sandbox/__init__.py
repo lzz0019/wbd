@@ -1,20 +1,12 @@
-import time
-from __builtin__ import str
 
-# date=" 2016-03-01"
-# try:
-#     time.strptime(date, " %Y-%m-%d")
-#     print "True"
-# except:
-#     print "False"
+x=" 1010.5 "
+y="1010"
+print "int(x)=",int(x)
+x.strip(" ")
+print "x=",x
+print x.isdigit()
 
-timeStr="23:40:01"
-try:
-    time.strptime(timeStr,"%H:%M:%S")
-    print "True"
-except:
-    print "False"
-
+print y.isdigit()
 
 
 
