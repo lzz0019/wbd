@@ -1,2 +1,0 @@
-Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA02StandardTestCode/log.txt
-Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA02StandardTestCode/CA02_300_InvalidHorizon.xml
