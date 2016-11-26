@@ -23,6 +23,9 @@ class Fix():
         self.starFile=None
         self.xmlFileName=None
         self.xmlFileObject=None
+        self.ariesFile=None
+        self.starFile=None
+        self.sightingErrors=0
                 
         if logFile is None:
             self.logFileName="log.txt"
@@ -54,7 +57,7 @@ class Fix():
                 self.logFileObject=open(self.logFileName, "a")
                 self.logFileObject.write("Sighting file:"+" " + os.path.abspath(self.xmlFileName)+"\n")
                 self.logFileObject.close()
-                return self.xmlFileName
+                return os.path.abspath(self.xmlFileName)
             except ValueError:
                 raise ValueError("Fix.setSightingFile:  cannot open log file!")
                  
@@ -78,18 +81,22 @@ class Fix():
     def getSightings(self):
         if self.xmlFileName is None:
             raise ValueError("Fix.getSightings:  xml file has not been set!")
-        else:
-            self.approximateLatitude="0d0.0"
-            self.approximateLongitude="0d0.0"   
-            tree=self.buildDOM(self.xmlFileName)
-            sightingDict=self.extractSighting(tree) 
-            updatedDict=self.adjustedAltitude(sightingDict)
-            self.writeToLog(updatedDict) 
-            self.logFileObject=open(self.logFileName,"a")
-            self.logFileObject.write("End of sighting file "+self.xmlFileName+"\n") 
-            self.logFileObject.close()
-            result=(self.approximateLatitude, self.approximateLongitude) 
-            return result       
+        if self.ariesFile is None:
+            raise ValueError("Fix.getSightings:  aries file has not been set!")
+        if self.starFile is None:
+            raise ValueError("Fix.getSightings:  star file has not been set!")
+        self.approximateLatitude="0d0.0"
+        self.approximateLongitude="0d0.0"   
+        tree=self.buildDOM(self.xmlFileName)
+        sightingDict=self.extractSighting(tree) 
+        sightingDict=self.adjustedAltitude(sightingDict)
+        sightingDict=self.calcGeoLatiLongi(sightingDict)
+        self.writeToLog(sightingDict) 
+        self.logFileObject=open(self.logFileName,"a")
+        self.logFileObject.write("End of sighting file "+self.xmlFileName+"\n") 
+        self.logFileObject.close()
+        result=(self.approximateLatitude, self.approximateLongitude) 
+        return result       
             
     def buildDOM(self, fileName):
         DOMTree=xml.dom.minidom.parse(fileName)
@@ -99,26 +106,30 @@ class Fix():
         collection=DOMTree.documentElement
         sightings=collection.getElementsByTagName("sighting")       # sightings is a list
         sightingDict={}   
-        i=1                                     # create a sighting dictionary 
+        i=1                                  # create a sighting dictionary 
         for sighting in sightings:
+            errorflag=False
             attributeDict={}
             sightingDict[i]=attributeDict
             body=self.extractElement("body", sighting)
             date=self.extractElement("date", sighting)
-            if not self.isValidDate(date):
-                raise ValueError("Fix.getSightings: invalid date!")
             timeStr=self.extractElement("time", sighting)
-            if not self.isValidTime(timeStr):
-                raise ValueError("Fix.getSightings: invalid time!")
             observation=self.extractElement("observation", sighting)
-            if not self.isValidObservation(observation):
-                raise ValueError("Fix.getSightings: invalid observation!")
-            if (body==None) or (date==None) or (timeStr==None) or (observation==None):
-                raise ValueError("Fix.getSightings:  mandatory tag is missing!")
             height=self.extractElement("height", sighting)
             temperature=self.extractElement("temperature", sighting)
             pressure=self.extractElement("pressure", sighting)
             horizon=self.extractElement("horizon", sighting)
+            if (body is None) or (date is None) or (timeStr is None) or (observation is None):
+                errorflag=True
+            if not self.isValidDate(date):
+                errorflag=True
+#                 raise ValueError("Fix.getSightings: invalid date!")
+            if not self.isValidTime(timeStr):
+                errorflag=True
+#                 raise ValueError("Fix.getSightings: invalid time!")
+            if not self.isValidObservation(observation):
+                errorflag=True
+#                 raise ValueError("Fix.getSightings: invalid observation!")
             attributeDict['body']=body
             attributeDict['date']=date
             attributeDict['time']=timeStr
@@ -126,31 +137,40 @@ class Fix():
             if height is None:
                 attributeDict['height']=0
             elif not self.isValidHeight(height):
-                raise ValueError("Fix.getSightings: invalid height!")
+                errorflag=True
+#                 raise ValueError("Fix.getSightings: invalid height!")
             else:
                 attributeDict['height']=float(height)
                 
             if temperature is None:
                 attributeDict['temperature']=72
             elif not self.isValidTemperature(temperature):
-                raise ValueError("Fix.getSightings: invalid temperature!")
+                errorflag=True
+#                 raise ValueError("Fix.getSightings: invalid temperature!")
             else:
                 attributeDict['temperature']=float(temperature)
                 
             if pressure is None:
                 attributeDict['pressure']=1010
             elif not self.isValidPressure(pressure):
-                raise ValueError("Fix.getSightings: invalid pressure!")
+                errorflag=True
+#                 raise ValueError("Fix.getSightings: invalid pressure!")
             else:
                 attributeDict['pressure']=int(pressure)
                 
             if horizon is None:
                 attributeDict['horizon']="natural"
             elif not self.isValidHorizon(horizon):
-                raise ValueError("Fix.getSightings: invalid horizon!")
+                errorflag=True
+#                 raise ValueError("Fix.getSightings: invalid horizon!")
             else:
                 attributeDict['horizon']=horizon
-            i=i+1         
+                
+            attributeDict['errorflag']=errorflag
+            if errorflag is True:
+                self.sightingErrors=self.sightingErrors+1
+            i=i+1
+                         
         return sightingDict
     
     def extractElement(self, tag, sighting):
@@ -227,23 +247,98 @@ class Fix():
     def adjustedAltitude(self, sightingDict):
         for eachSighting in sightingDict:
             attributeDict=sightingDict.get(eachSighting)
-            observation=attributeDict.get('observation')                    #observation value e.g "045d15.2"
-            angleInstance=Angle.Angle()
-            observationFloat=angleInstance.setDegreesAndMinutes(observation)
-            if observationFloat<0.1:
-                raise ValueError("Fix.getSightings:  observed altitude is LT. 0.1arc-minutes!")         
-            height=attributeDict.get('height')
-            horizon=attributeDict.get('horizon')    
-            dip=self.calcDip(height,horizon)                # 1. calculate dip
-            temperature=attributeDict.get('temperature')
-            pressure=attributeDict.get('pressure')
-            refraction=self.calcRefraction(temperature,pressure,observationFloat)      # 2. calculate refraction
-            # 3. adjustedAltitude = observationFloat + dip + refraction
-            adjustedAltitude= observationFloat+dip+refraction
-            angleInstance.setDegrees(adjustedAltitude)
-            adjustedAltitudeFormat=angleInstance.getString()      
-            attributeDict['adjustedAltitude']=adjustedAltitudeFormat
+            if attributeDict.get('errorflag') is False: 
+                observation=attributeDict.get('observation')                    #observation value e.g "045d15.2"
+                angleInstance=Angle.Angle()
+                observationFloat=angleInstance.setDegreesAndMinutes(observation)
+                if observationFloat<0.1:
+                    raise ValueError("Fix.getSightings:  observed altitude is LT. 0.1arc-minutes!")         
+                height=attributeDict.get('height')
+                horizon=attributeDict.get('horizon')    
+                dip=self.calcDip(height,horizon)                # 1. calculate dip
+                temperature=attributeDict.get('temperature')
+                pressure=attributeDict.get('pressure')
+                refraction=self.calcRefraction(temperature,pressure,observationFloat)      # 2. calculate refraction
+                # 3. adjustedAltitude = observationFloat + dip + refraction
+                adjustedAltitude= observationFloat+dip+refraction
+                angleInstance.setDegrees(adjustedAltitude)
+                adjustedAltitudeFormat=angleInstance.getString()      
+                attributeDict['adjustedAltitude']=adjustedAltitudeFormat
         return sightingDict
+    
+    def calcGeoLatiLongi(self,sightingDict):
+        if (self.xmlFileName is None) or (self.ariesFile is None) or (self.starFile is None):
+            raise ValueError("Fix.getSightings:  sighting file/aries file/star file, has not been set!")
+        for eachSighting in sightingDict:
+            attributDict=sightingDict.get(eachSighting)
+            if attributDict.get('errorflag') is False:
+                # locate star entry
+                starEntry=[]
+                starEntryList=[]        # starEntryList is a list of lines that has same body
+                bodyValue=attributDict.get('body')
+                self.starFileObject=open(self.starFile,'r')
+                starFileContents=self.starFileObject.readlines()
+                self.starFileObject.close()
+                for starEntryNumber in range(0,len(starFileContents)):
+                    if(starFileContents[starEntryNumber].find(bodyValue) > -1):
+                        #store entries in form of a list of tuples
+                        contentString=starFileContents[starEntryNumber]
+                        starEntryList.append(contentString.split())
+                starEntryList=sorted(starEntryList, cmp=lambda x,y: cmp(time.strptime(x[1], "%m/%d/%y"), time.strptime(y[1], "%m/%d/%y")))
+                starEntry=starEntryList[0]
+                latitude=starEntry[3]       #latitude stores a string, format "wdz.z"
+                attributDict['geographic position latitude']=latitude
+                SHAstar=starEntry[2]        #SHAstar-----string
+                # calculate GHAaries: need GHAaries1, GHAaries2, s
+                self.ariesFileObject=open(self.ariesFile,'r')
+                ariesFileContents=self.ariesFileObject.readlines()
+                self.ariesFileObject.close()
+                dateValue=attributDict.get('date')
+                dateTarget=time.strftime("%m/%d/%y", time.strptime(dateValue, "%Y-%m-%d"))
+                timeValue=attributDict.get('time')
+                hourTarget1=str(time.strptime(timeValue, "%H:%M:%S")[3])
+                GHA1entry=None
+                for lineNumber in range(0,len(ariesFileContents)):
+                    if(ariesFileContents[lineNumber].find(dateTarget)>-1):
+                        if(ariesFileContents[lineNumber].split()[1].find(hourTarget1)>-1):
+                            GHA1entry=ariesFileContents[lineNumber]
+                            break
+                GHAaries1=GHA1entry.split()[2]          # GHAaries1----string
+                hourTarget2=str((time.strptime(timeValue, "%H:%M:%S")[3]+1)%24)
+                GHA2entry=None
+                for lineNumber in range(0,len(ariesFileContents)):
+                    if(ariesFileContents[lineNumber].find(dateTarget)>-1):
+                        if(ariesFileContents[lineNumber].split()[1].find(hourTarget2)>-1):
+                            GHA2entry=ariesFileContents[lineNumber]
+                            break
+                GHAaries2=GHA2entry.split()[2]          # GHAaries2----string
+                s= time.strptime(timeValue, "%H:%M:%S")[4]*60+ time.strptime(timeValue, "%H:%M:%S")[5]
+                # calculate GHAaries: step1, temp=GHAaries2-GHAaries1
+                #                     step2, temp=|temp|---get absolute value
+                #                     step3, temp=temp*(s/3600)
+                #                     step4, temp=temp+GHAaries1
+                #                     step5, GHAaries=temp
+                GHAaries1Angle=Angle.Angle()
+                GHAaries1Angle.setDegreesAndMinutes(GHAaries1)
+                GHAaries2Angle=Angle.Angle()
+                GHAaries2Angle.setDegreesAndMinutes(GHAaries2)
+                temp=GHAaries2Angle.subtract(GHAaries1Angle)
+                temp=abs(temp)
+                temp=temp*(s/3600.0)                      # temp----float
+                tempAngle=Angle.Angle()
+                tempAngle.setDegrees(temp)
+                temp=GHAaries1Angle.add(tempAngle)        # temp----float
+                GHAaries=temp 
+                GHAariesAngle=Angle.Angle()
+                GHAariesAngle.setDegrees(GHAaries)
+                SHAstarAngle=Angle.Angle()
+                SHAstarAngle.setDegreesAndMinutes(SHAstar)
+                GHAobservation=GHAariesAngle.add(SHAstarAngle)  # result is float
+                GHAobservationAngle=Angle.Angle()
+                GHAobservationAngle.setDegrees(GHAobservation)
+                longitude=GHAobservationAngle.getString()
+                attributDict['geographic position longitude']=longitude                
+        return sightingDict                                      
         
     def calcDip(self,height,horizon):
         if horizon=='natural':
@@ -267,47 +362,70 @@ class Fix():
         orderedList=sorted(sightingList, key=lambda x: (x[1].get('date'),x[1].get('body')))
         self.logFileObject=open(self.logFileName,"a")
         for element in orderedList:
-            bodyValue=element[1].get('body')
-            dateValue=element[1].get('date')
-            tiemValue=element[1].get('time')
-            adjstAltiValue=element[1].get('adjustedAltitude')
-            stringToWrite=bodyValue+"\t"+dateValue+"\t"+tiemValue+"\t"+adjstAltiValue+"\n"
-            self.logFileObject.write(stringToWrite)           
+            if element[1].get('errorflag') is False:
+                bodyValue=element[1].get('body')
+                dateValue=element[1].get('date')
+                timeValue=element[1].get('time')
+                adjstAltiValue=element[1].get('adjustedAltitude')
+                geoPosiLatiValue=element[1].get('geographic position latitude')
+                geoPosiLongiValue=element[1].get('geographic position longitude')
+                stringToWrite=bodyValue+"\t"+dateValue+"\t"+timeValue+"\t"+adjstAltiValue+"\t"
+                stringToWrite=stringToWrite+geoPosiLatiValue+"\t"+geoPosiLongiValue+"\n"
+                self.logFileObject.write(stringToWrite)
+                
+        stringToWrite="Sighting errors:"+"\t"+str(self.sightingErrors)+"\n"
+        self.logFileObject.write(stringToWrite)           
         self.logFileObject.close()
     
-    def setAriesFile(self,ariesFile):  
-        if(not isinstance(ariesFile, str)):
+    def setAriesFile(self,ariesFile=None): 
+        if ariesFile is None:
+            raise ValueError("Fix.setAriesFile: missing ariesFile name!") 
+        elif(not isinstance(ariesFile, str)):
             raise ValueError("Fix.setAriesFile:  the file name should be a string!")
-        elif not(ariesFile.endswith(".txt")):
+        elif (not(ariesFile.endswith(".txt"))):
             raise ValueError("Fix.setAriesFile:  the file name should have .txt extension!")
         elif len(ariesFile.split(".")[0])<1:
             raise ValueError("Fix.setAriesFile:  the file name should have length>=1")
-        else:    
-            self.ariesFile=ariesFile
-            absoluteFilePath=os.path.abspath(self.ariesFile)
+        else:
+            if not os.path.isfile(ariesFile):
+                raise ValueError("Fix.setAriesFile: ariesFile does not exist!")
+            try:
+                self.ariesFileObject=open(ariesFile,"r")
+                self.ariesFileObject.close()
+                self.ariesFile=ariesFile
+            except ValueError:
+                raise ValueError("Fix.setAriesFile: ariesFile cannot be opened!")
             try:
                 self.logFileObject=open(self.logFileName,"a")
                 self.logFileObject.write("Aries file:"+" "+os.path.abspath(self.ariesFile)+"\n")
                 self.logFileObject.close()
             except ValueError:
                 raise ValueError("Fix.setAriesFile:  logFile cannot be opened!")
-        return absoluteFilePath
+        return os.path.abspath(self.ariesFile)
     
-    def setStarFile(self,starFile):
-        if(not isinstance(starFile, str)):
+    def setStarFile(self,starFile=None):
+        if starFile is None:
+            raise ValueError("Fix.setStarFile:    missing starFile name!")
+        elif(not isinstance(starFile, str)):
             raise ValueError("Fix.setStarFile:  the file name should be a string!")
         elif not(starFile.endswith(".txt")):
             raise ValueError("Fix.setStarFile:  the file name should have .txt extension!")
         elif len(starFile.split(".")[0])<1:
             raise ValueError("Fix.setStarFile:  the file name should have length>=1")
         else:
-            self.starFile=starFile
-            absoluteFilePath=os.path.abspath(self.starFile)
+            if not os.path.isfile(starFile):
+                raise ValueError("Fix.setStarFile:    starFile does not exist!")
+            try:
+                self.starFileObject=open(starFile,"r")
+                self.starFileObject.close()
+                self.starFile=starFile
+            except ValueError:
+                raise ValueError("Fix.setStarFile:    starFile cannot be opened!")
             try:
                 self.logFileObject=open(self.logFileName,"a")
                 self.logFileObject.write("Star file:"+" "+os.path.abspath(self.starFile)+"\n")
                 self.logFileObject.close()
             except ValueError:
                 raise ValueError("Fix.setStarFile:  logFile cannot be opened!")
-        return absoluteFilePath
+        return os.path.abspath(self.starFile)
         
