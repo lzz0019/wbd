@@ -327,3 +327,16 @@ Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log
 Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log.txt
 Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log.txt
 Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log.txt
+Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/2.xml
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/log.txt

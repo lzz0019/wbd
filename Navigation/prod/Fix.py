@@ -264,6 +264,7 @@ class Fix():
                 angleInstance.setDegrees(adjustedAltitude)
                 adjustedAltitudeFormat=angleInstance.getString()      
                 attributeDict['adjustedAltitude']=adjustedAltitudeFormat
+                print "adjustedAltitude",adjustedAltitudeFormat
         return sightingDict
     
     def calcGeoLatiLongi(self,sightingDict):
@@ -288,6 +289,7 @@ class Fix():
                 starEntry=starEntryList[0]
                 latitude=starEntry[3]       #latitude stores a string, format "wdz.z"
                 attributDict['geographic position latitude']=latitude
+                print "geographic position latitude=",latitude
                 SHAstar=starEntry[2]        #SHAstar-----string
                 # calculate GHAaries: need GHAaries1, GHAaries2, s
                 self.ariesFileObject=open(self.ariesFile,'r')
@@ -301,6 +303,7 @@ class Fix():
                 for lineNumber in range(0,len(ariesFileContents)):
                     if(ariesFileContents[lineNumber].find(dateTarget)>-1):
                         if(ariesFileContents[lineNumber].split()[1].find(hourTarget1)>-1):
+                            print "*****"
                             GHA1entry=ariesFileContents[lineNumber]
                             break
                 GHAaries1=GHA1entry.split()[2]          # GHAaries1----string
@@ -337,7 +340,8 @@ class Fix():
                 GHAobservationAngle=Angle.Angle()
                 GHAobservationAngle.setDegrees(GHAobservation)
                 longitude=GHAobservationAngle.getString()
-                attributDict['geographic position longitude']=longitude                
+                attributDict['geographic position longitude']=longitude   
+                print "geographic position longitude=",longitude             
         return sightingDict                                      
         
     def calcDip(self,height,horizon):
