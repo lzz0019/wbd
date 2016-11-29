@@ -90,7 +90,7 @@ class TestFix(unittest.TestCase):
         'Construct a Fix ... nothing else'
         self.assertIsInstance(F.Fix(), F.Fix, 
                               "Major error:  Fix not created")
- 
+  
 #----------
     def test100_020_ShouldConstructFixWithDefaultFileCA03(self):
         'Construct Fix with default log file name'
@@ -105,8 +105,8 @@ class TestFix(unittest.TestCase):
                                  "Minor:  first line of {} is incorrect".format(self.DEFAULT_LOG_FILE))
         self.assertNotEquals(-1, entry.find(self.DEFAULT_LOG_FILE), 
                              "Minor:  first line of log is incorrect")
- 
- 
+  
+  
 #----------
     def test100_030_ShouldConstructWithKeywordParmCA02(self):
         'Construct Fix using named parameter'
@@ -116,8 +116,8 @@ class TestFix(unittest.TestCase):
         except Exception as e:
             self.fail("Minor: " + str(e))
             self.deleteNamedLogFlag = True
- 
- 
+  
+  
 #----------
     def test100_040_ShouldWriteFullPathToLogCA03(self):
         'Construct Fix and ensure abspath is written to log file'
@@ -133,8 +133,8 @@ class TestFix(unittest.TestCase):
         self.assertNotEquals(-1, entry.find(os.path.abspath(self.RANDOM_LOG_FILE)), 
                                  "Minor:  abspath of log file is not logged " + self.RANDOM_LOG_FILE)
         self.deleteNamedLogFlag = True
-         
-  
+          
+   
  #----------
     def test100_050_ShouldConstructFixWithExistingFileCA02(self):
         'Construct Fix and append to existing log file'
@@ -152,8 +152,8 @@ class TestFix(unittest.TestCase):
         self.assertIsInstance(theFix, F.Fix, 
                               "Major:  log file failed to create " + self.RANDOM_LOG_FILE)
         self.deleteNamedLogFlag = True
-         
-         
+          
+          
 #+++++++++++++++++++ Sad Path Tests ++++++++++++++++++++  
 #----------              
     def test100_910_ShouldRaiseExceptionOnFileNameLength(self):
@@ -171,10 +171,10 @@ class TestFix(unittest.TestCase):
             F.Fix(42)
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)], 
                           "Minor:  failure to check for non-string log file name")  
-     
-        
+      
+         
 #----------
- 
+  
 #==================== Fix.setSightingFile ====================        
 # 200 setSightingFile
 #    Analysis
@@ -212,7 +212,7 @@ class TestFix(unittest.TestCase):
                              "Major:  setSightingFile() is not returning file name")
         self.assertNotEquals(-1, result.find(os.path.abspath(testFile)), 
                              "Minor:  setSightingFile() is not returning abspath of file name")
- 
+  
 #----------
     def test200_020_ShouldConstructWithKeywordParmCA03(self):
         'Set sighting file with keyword parm'
@@ -226,7 +226,7 @@ class TestFix(unittest.TestCase):
                              "Major:  setSightingFile() is not returning file name")
         self.assertNotEquals(-1, result.find(os.path.abspath(testFile)), 
                              "Minor:  setSightingFile() is not returning abspath of file name")
-  
+   
 #----------
     def test200_030_ShouldSetValidSightingFile(self):
         'Set sighting file and verify string is written to file'
@@ -239,7 +239,7 @@ class TestFix(unittest.TestCase):
                                  "Major:  correct sighting file string not being logged"),
             self.assertNotEquals(-1, logFileContents[-1].find(os.path.abspath(testFile)),
                                  "Minor:  correct sighting file name not being logged") 
-  
+   
  #----------       
     def test200_910_ShouldRaiseExceptionOnNonStringFileName(self):
         'Fail on setting sighting file with non-string name'
@@ -250,7 +250,7 @@ class TestFix(unittest.TestCase):
             theFix.setSightingFile(testFile)
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Minor:  failure to check for non-string sighting file name")  
-    
+     
 #----------     
     def test200_920_ShouldRaiseExceptionOnFileLengthError(self):
         'Fail on setting star sighting file with missing file prefix'
@@ -271,7 +271,7 @@ class TestFix(unittest.TestCase):
             theFix.setSightingFile(testFile)
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Minor:  failure to check for non xml sighting file extension")
- 
+  
 #----------        
     def test200_940_ShouldRaiseExceptionOnNonXmlFile2(self):
         'Fail on setting star sighting file with xml name but not xml extension'
@@ -281,7 +281,7 @@ class TestFix(unittest.TestCase):
             theFix.setSightingFile("xml")
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Minor:  failure to delineate between sighting file name and extension") 
-  
+   
 #----------       
     def test200_950_ShouldRaiseExceptionOnMissingFileName(self):
         'Fail on setting star sighting file with no name'
@@ -291,7 +291,7 @@ class TestFix(unittest.TestCase):
             theFix.setSightingFile()
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Minor:  failure to check for missing sighting file")       
-         
+          
 #----------           
     def test200_960_SholdRaiseExceptionOnMissingFile(self):
         'Fail on setting star sighting file that does not exist'
@@ -302,9 +302,9 @@ class TestFix(unittest.TestCase):
             theFix.setSightingFile(testFile)
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Minor:  failure to check for missing sighting file") 
-         
-         
-         
+          
+          
+          
 #==================== Fix.setAriesFile ====================            
 # 400 setAriesFile
 #    Analysis
@@ -342,7 +342,7 @@ class TestFix(unittest.TestCase):
                              "Major:  setAriesFile() is not returning file name")
         self.assertNotEquals(-1, result.find(os.path.abspath(testFile)), 
                              "Minor:  setAriesFile() is not returning abspath of file name")
- 
+  
 #----------
     def test400_020_ShouldConstructWithKeywordParmCA03(self):
         'Set aries file with keyword parm'
@@ -356,7 +356,7 @@ class TestFix(unittest.TestCase):
                              "Major:  setAriesFile() is not returning file name")
         self.assertNotEquals(-1, result.find(os.path.abspath(testFile)), 
                              "Minor:  setAriesFile() is not returning abspath of file name")
-  
+   
 #----------
     def test400_030_ShouldSetValidAriesFileCA03(self):
         'Set aries file and verify string is written to file'
@@ -369,7 +369,7 @@ class TestFix(unittest.TestCase):
                                  "Major:  correct aries file string not being logged"),
             self.assertNotEquals(-1, logFileContents[-1].find(os.path.abspath(testFile)),
                                  "Minor:  correct aries file name not being logged") 
-  
+   
 #----------       
     def test400_910_ShouldRaiseExceptionOnNonStringFileNameCA03(self):
         'Fail on setting aries file with non-string name'
@@ -380,7 +380,7 @@ class TestFix(unittest.TestCase):
             theFix.setAriesFile(testFile)
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Minor:  failure to check for non-string aries file name")  
-    
+     
 #----------     
     def test400_920_ShouldRaiseExceptionOnFileLengthErrorCA03(self):
         'Fail on setting aries file with missing file prefix'
@@ -401,7 +401,7 @@ class TestFix(unittest.TestCase):
             theFix.setAriesFile(testFile)
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Minor:  failure to check for non txt aries file extension")
- 
+  
 #----------        
     def test400_940_ShouldRaiseExceptionOnNonXmlFile2CA03(self):
         'Fail on setting aries  file with txt name but not txt extension'
@@ -411,7 +411,7 @@ class TestFix(unittest.TestCase):
             theFix.setAriesFile("txt")
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Minor:  failure to delineate between aries file name and extension") 
-  
+   
 #----------       
     def test400_950_ShouldRaiseExceptionOnMissingFileNameCA03(self):
         'Fail on setting aries file with no name'
@@ -421,7 +421,7 @@ class TestFix(unittest.TestCase):
             theFix.setAriesFile()
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Minor:  failure to check for missing aries file")       
-         
+          
 #----------           
     def test400_960_SholdRaiseExceptionOnMissingFileCA03(self):
         'Fail on setting aries file that does not exist'
@@ -432,9 +432,9 @@ class TestFix(unittest.TestCase):
             theFix.setAriesFile(testFile)
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Minor:  failure to check for missing aries file") 
- 
- 
- 
+  
+  
+  
 #==================== Fix.setStarFile ===================              
 # 500 setStarFile
 #    Analysis
@@ -472,7 +472,7 @@ class TestFix(unittest.TestCase):
                              "Major:  setStarFile() is not returning file name")
         self.assertNotEquals(-1, result.find(os.path.abspath(testFile)), 
                              "Minor:  setStarFile() is not returning abspath of file name")
- 
+  
 #----------
     def test500_020_ShouldConstructWithKeywordParmCA03(self):
         'Set star file with keyword parm'
@@ -486,7 +486,7 @@ class TestFix(unittest.TestCase):
                              "Major:  setStarFile() is not returning file name")
         self.assertNotEquals(-1, result.find(os.path.abspath(testFile)), 
                              "Minor:  setStarFile() is not returning abspath of file name")
-  
+   
 #----------
     def test500_030_ShouldSetValidStarFileCA03(self):
         'Set star file and verify string is written to file'
@@ -499,7 +499,7 @@ class TestFix(unittest.TestCase):
                                  "Major:  correct star file string not being logged"),
             self.assertNotEquals(-1, logFileContents[-1].find(os.path.abspath(testFile)),
                                  "Minor:  correct star file name not being logged") 
-  
+   
 #----------       
     def test500_910_ShouldRaiseExceptionOnNonStringFileNameCA03(self):
         'Fail on setting star file with non-string name'
@@ -510,7 +510,7 @@ class TestFix(unittest.TestCase):
             theFix.setStarFile(testFile)
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Minor:  failure to check for non-string star file name")  
-    
+     
 #----------     
     def test500_920_ShouldRaiseExceptionOnFileLengthErrorCA03(self):
         'Fail on setting star file with missing file prefix'
@@ -531,7 +531,7 @@ class TestFix(unittest.TestCase):
             theFix.setStarFile(testFile)
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Minor:  failure to check for non txt star file extension")
- 
+  
 #----------        
     def test500_940_ShouldRaiseExceptionOnNonXmlFile2CA03(self):
         'Fail on setting star  file with txt name but not txt extension'
@@ -541,7 +541,7 @@ class TestFix(unittest.TestCase):
             theFix.setStarFile("txt")
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Minor:  failure to delineate between star file name and extension") 
-  
+   
 #----------       
     def test500_950_ShouldRaiseExceptionOnMissingFileNameCA03(self):
         'Fail on setting star file with no name'
@@ -551,7 +551,7 @@ class TestFix(unittest.TestCase):
             theFix.setStarFile()
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Minor:  failure to check for missing star file")       
-         
+          
 #----------           
     def test500_960_SholdRaiseExceptionOnMissingFileCA03(self):
         'Fail on setting star file that does not exist'
@@ -562,11 +562,11 @@ class TestFix(unittest.TestCase):
             theFix.setStarFile(testFile)
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Minor:  failure to check for missing star file")
-       
- 
- 
- 
- 
+        
+  
+  
+  
+  
 #----------
 #==================== Fix.getSightings ===================         
 # 300 getSightings
@@ -628,7 +628,7 @@ class TestFix(unittest.TestCase):
             self.assertTrue(True)
         except:
             self.fail("Major: getSightings failed on valid file with mixed indentation")
-             
+              
 #---------- 
     def test300_030_ShouldLogOneSighting(self):
         'log one valid adjusted altitude'
@@ -639,11 +639,11 @@ class TestFix(unittest.TestCase):
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         sightingCount = 0
         for logEntryNumber in range(0, len(logFileContents)):
             if(logFileContents[logEntryNumber].find(targetStringList[0]) > -1):
@@ -653,7 +653,7 @@ class TestFix(unittest.TestCase):
                                          "Major:  Log entry is not correct for getSightings " + self.RANDOM_LOG_FILE)
         self.assertEquals(1, sightingCount)
         self.deleteNamedLogFlag = True  
-         
+          
 #---------- 
     def test300_040_ShouldLogMultipleSightingsInTimeOrder(self): 
         'Log multiple stars that sorting'   
@@ -667,11 +667,11 @@ class TestFix(unittest.TestCase):
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         # find entry with first star
         entryIndex = self.indexInList(targetStringList[0][0], logFileContents)
         self.assertLess(-1, entryIndex, 
@@ -681,7 +681,7 @@ class TestFix(unittest.TestCase):
             if(not(targetStringList[index][0] in logFileContents[entryIndex])):
                 self.fail("Major: failure to find star in log " + self.RANDOM_LOG_FILE)
         self.deleteNamedLogFlag = True  
- 
+  
 #---------- 
     def test300_050_ShouldLogMultipleSightingsWithSameDateTime(self): 
         'Log multiple stars that require sorting using body name'        
@@ -696,11 +696,11 @@ class TestFix(unittest.TestCase):
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         # find entry with first star
         entryIndex = self.indexInList(targetStringList[0][0], logFileContents)
         self.assertLess(-1, entryIndex, 
@@ -710,27 +710,27 @@ class TestFix(unittest.TestCase):
             if(not(targetStringList[index][0] in logFileContents[entryIndex])):
                 self.fail("Major: failure to find star in log " + self.RANDOM_LOG_FILE)
         self.deleteNamedLogFlag = True   
- 
+  
 #---------- 
     def test300_060_ShouldHandleNoSightings(self):
         'ensure empty fix is handled without logging anything'       
         testFile = self.mapFileToTest("validWithNoSightings")
-         
+          
         theFix = F.Fix(self.RANDOM_LOG_FILE)
         theFix.setSightingFile(testFile)
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         endOfSightingFileIndex = self.indexInList(self.starSightingString, logFileContents)
         self.assertLess(-1,endOfSightingFileIndex,
                            "Major: log file does not contain 'end of sighting file' entry " + self.RANDOM_LOG_FILE)
         self.deleteNamedLogFlag = True   
-         
+          
 #---------- 
     def test300_070_ShouldIgnoreExtraneousTags(self): 
         'log information from recognized tags, ignore extraneous tags'   
@@ -743,11 +743,11 @@ class TestFix(unittest.TestCase):
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         # find entry with first star
         entryIndex = self.indexInList(targetStringList[0][0], logFileContents)
         self.assertLess(-1, entryIndex, 
@@ -757,7 +757,7 @@ class TestFix(unittest.TestCase):
             if(not(targetStringList[index][0] in logFileContents[entryIndex])):
                 self.fail("Major: failure to find star in log " + self.RANDOM_LOG_FILE)
         self.deleteNamedLogFlag = True    
- 
+  
 #---------- 
     def test300_080_ShouldLogStarWithNaturalHorizon(self):
         'log adjusted altitude for natural horizon'
@@ -768,11 +768,11 @@ class TestFix(unittest.TestCase):
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         sightingCount = 0
         for logEntryNumber in range(0, len(logFileContents)):
             if(logFileContents[logEntryNumber].find(targetStringList[0]) > -1):
@@ -782,7 +782,7 @@ class TestFix(unittest.TestCase):
                                          "Major:  Log entry is not correct for getSightings " + self.RANDOM_LOG_FILE)
         self.assertEquals(1, sightingCount)
         self.deleteNamedLogFlag = True  
- 
+  
 #---------- 
     def test300_080_ShouldLogStarWithArtificialHorizon(self):
         'log adjusted altitude for artificial horizon'
@@ -793,11 +793,11 @@ class TestFix(unittest.TestCase):
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         sightingCount = 0
         for logEntryNumber in range(0, len(logFileContents)):
             if(logFileContents[logEntryNumber].find(targetStringList[0]) > -1):
@@ -807,23 +807,23 @@ class TestFix(unittest.TestCase):
                                          "Major:  Log entry is not correct for getSightings " + self.RANDOM_LOG_FILE)
         self.assertEquals(1, sightingCount)
         self.deleteNamedLogFlag = True  
-         
+          
 #----------         
     def test300_090_ShouldLogStarWithDefaultSightingValues(self):
         'log adjusted altitude for star using default values'
         testFile = self.mapFileToTest("validOneStarWithDefaultValues")
- 
+  
         targetStringList = ["Hadar", "2017-03-01", "23:40:01", "29d59.9"]
         theFix = F.Fix(self.RANDOM_LOG_FILE)
         theFix.setSightingFile(testFile)
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         sightingCount = 0
         for logEntryNumber in range(0, len(logFileContents)):
             if(logFileContents[logEntryNumber].find(targetStringList[0]) > -1):
@@ -833,7 +833,7 @@ class TestFix(unittest.TestCase):
                                          "Major:  Log entry is not correct for getSightings")
         self.assertEquals(1, sightingCount)
         self.deleteNamedLogFlag = True
-  
+   
 #-----------        
     def test300_091_ShouldLogErrorOnMissingMandatoryTag(self):
         'Verify that missing mandatory tag was flagged as sighting error'
@@ -844,15 +844,15 @@ class TestFix(unittest.TestCase):
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         self.assertNotEquals(-1, self.indexInList(targetString, logFileContents),
                           "Major:  failure to log number of sighting error for missing mandatory tag " + self.RANDOM_LOG_FILE) 
         self.deleteNamedLogFlag = True  
- 
+  
 #----------
     def test300_092_ShouldLogErrorOnInvalidBody(self):
         'Verify that invalid body tag was flagged as sighting error'
@@ -863,15 +863,15 @@ class TestFix(unittest.TestCase):
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         self.assertNotEquals(-1, self.indexInList(targetString, logFileContents),
                           "Minor:  failure to log number of sighting error for invalid body tag " + self.RANDOM_LOG_FILE)
         self.deleteNamedLogFlag = True
- 
+  
 #----------
     def test300_093_ShouldLogErrorOnInvalidDate(self):
         'Verify that invalid date tag was flagged as sighting error'
@@ -882,15 +882,15 @@ class TestFix(unittest.TestCase):
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         self.assertNotEquals(-1, self.indexInList(targetString, logFileContents),
                           "Major:  failure to log number of sighting error for invalid date tag " + self.RANDOM_LOG_FILE) 
         self.deleteNamedLogFlag = True
- 
+  
 #----------
     def test300_094_ShouldLogErrorOnInvalidTime(self):
         'Verify that invalid time tag was flagged as sighting error'
@@ -901,15 +901,15 @@ class TestFix(unittest.TestCase):
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         self.assertNotEquals(-1, self.indexInList(targetString, logFileContents),
                           "Major:  failure to log number of sighting error for invalid time tag " + self.RANDOM_LOG_FILE) 
         self.deleteNamedLogFlag = True
-         
+          
 #----------
     def test300_095_ShouldLogErrorOnInvalidObservation(self):
         'Verify that invalid observation tag was flagged as sighting error'
@@ -920,16 +920,16 @@ class TestFix(unittest.TestCase):
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         self.assertNotEquals(-1, self.indexInList(targetString, logFileContents),
                           "Major:  failure to log number of sighting error for invalid observation tag " + self.RANDOM_LOG_FILE) 
         self.deleteNamedLogFlag = True
-         
- 
+          
+  
 #----------
     def test300_096_ShouldLogErrorOnInvalidHeight(self):
         'Verify that invalid height tag was flagged as sighting error'
@@ -940,16 +940,16 @@ class TestFix(unittest.TestCase):
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         self.assertNotEquals(-1, self.indexInList(targetString, logFileContents),
                           "Major:  failure to log number of sighting error for invalid height tag " + self.RANDOM_LOG_FILE) 
         self.deleteNamedLogFlag = True
-         
- 
+          
+  
 #----------
     def test300_097_ShouldLogErrorOnInvalidTemperature(self):
         'Verify that invalid temperature tag was flagged as sighting error'
@@ -960,16 +960,16 @@ class TestFix(unittest.TestCase):
         theFix.setStarFile(self.starFileName)
         theFix.setAriesFile(self.ariesFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         self.assertNotEquals(-1, self.indexInList(targetString, logFileContents),
                           "Major:  failure to log number of sighting error for invalid temperature tag " + self.RANDOM_LOG_FILE) 
         self.deleteNamedLogFlag = True
-         
- 
+          
+  
 #----------
     def test300_098_ShouldLogErrorOnInvalidPressure(self):
         'Verify that invalid pressure tag was flagged as sighting error'
@@ -980,15 +980,15 @@ class TestFix(unittest.TestCase):
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         self.assertNotEquals(-1, self.indexInList(targetString, logFileContents),
                           "Major:  failure to log number of sighting error for invalid pressure tag " + self.RANDOM_LOG_FILE) 
         self.deleteNamedLogFlag = True
- 
+  
 #----------
     def test300_099_ShouldLogErrorOnInvalidHorizon(self):
         'Verify that invalid horizon tag was flagged as sighting error'
@@ -999,15 +999,15 @@ class TestFix(unittest.TestCase):
         theFix.setStarFile(self.starFileName)
         theFix.setAriesFile(self.ariesFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         self.assertNotEquals(-1, self.indexInList(targetString, logFileContents),
                           "Major:  failure to log number of sighting error for invalid horizon tag " + self.RANDOM_LOG_FILE) 
         self.deleteNamedLogFlag = True        
-         
+          
     def test300_100_ShouldLogStarLatLon(self):
         'log geographical position with no interpolation of observation'
         testFile = self.mapFileToTest("validLatLon")
@@ -1017,11 +1017,11 @@ class TestFix(unittest.TestCase):
         theFix.setAriesFile(self.ariesFileName)   
         theFix.setStarFile(self.starFileName)
         theFix.getSightings()
-         
+          
         theLogFile = open(self.RANDOM_LOG_FILE, "r")
         logFileContents = theLogFile.readlines()
         theLogFile.close()
-         
+          
         sightingCount = 0
         for logEntryNumber in range(0, len(logFileContents)):
             if(logFileContents[logEntryNumber].find(targetStringList[0]) > -1):
@@ -1032,8 +1032,8 @@ class TestFix(unittest.TestCase):
                                          "Major:  Lat/Lon entry is not correct for getSightings " + self.RANDOM_LOG_FILE)
         self.assertEquals(1, sightingCount)
         self.deleteNamedLogFlag = True  
-         
           
+           
 # #-----------        
 #     def test300_110_ShouldLogStarLatLonWithInterpolation(self):
 #         'log geographical position'
@@ -1059,8 +1059,8 @@ class TestFix(unittest.TestCase):
 #                                          "Major:  Lat/Lon entry is not correct for getSightings " + self.RANDOM_LOG_FILE)
 #         self.assertEquals(1, sightingCount)
 #         self.deleteNamedLogFlag = True  
-         
-         
+          
+          
 #---------- 
     def test300_910_ShouldRaiseExceptionOnNotSettingSightingsFile(self):
         'Raise exception on failure to set sighting file'
@@ -1072,7 +1072,7 @@ class TestFix(unittest.TestCase):
             theFix.getSightings()
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Major:  failure to set sighting file before getSightings()") 
-     
+      
     def test300_920_ShouldRaiseExceptionOnNotSettingStarFile(self):
         'Raise exception on failure to set star file'
         expectedDiag = self.className + "getSightings:"
@@ -1085,7 +1085,7 @@ class TestFix(unittest.TestCase):
             theFix.getSightings()
         self.assertEquals(expectedDiag, context.exception.args[0][0:len(expectedDiag)],
                           "Major:  failure to set star file before getSightings()")   
- 
+  
     def test300_930_ShouldRaiseExceptionOnNotSettingAriesFile(self):
         'Raise exception on failure to set aries file'
         expectedDiag = self.className + "getSightings:"

@@ -1,0 +1,4 @@
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/log24211f4142eb.txt
+Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA02_300_ValidOneStarArtificialHorizon.xml
+Aries file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Aries.txt
+Star file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Stars.txt

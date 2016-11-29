@@ -11,6 +11,9 @@ import Navigation.prod.Angle as Angle
 
 from __builtin__ import str, False
 from _ast import Str
+from datetime import datetime
+from itertools import count
+
 
 class Fix():    
     
@@ -26,6 +29,8 @@ class Fix():
         self.ariesFile=None
         self.starFile=None
         self.sightingErrors=0
+        self.assumedLatitude=None
+        self.assumedLongitude=None
                 
         if logFile is None:
             self.logFileName="log.txt"
@@ -78,13 +83,13 @@ class Fix():
             except ValueError:
                 raise ValueError("Fix.setSightingFile:  xml file cannot be opened!")
     
-    def getSightings(self):
+    def getSightings(self, assumedLatitude=None, assumedLongitude=None):
         if self.xmlFileName is None:
             raise ValueError("Fix.getSightings:  xml file has not been set!")
         if self.ariesFile is None:
             raise ValueError("Fix.getSightings:  aries file has not been set!")
         if self.starFile is None:
-            raise ValueError("Fix.getSightings:  star file has not been set!")
+            raise ValueError("Fix.getSightings:  star file has not been set!") 
         self.approximateLatitude="0d0.0"
         self.approximateLongitude="0d0.0"   
         tree=self.buildDOM(self.xmlFileName)
@@ -169,8 +174,7 @@ class Fix():
             attributeDict['errorflag']=errorflag
             if errorflag is True:
                 self.sightingErrors=self.sightingErrors+1
-            i=i+1
-                         
+            i=i+1                 
         return sightingDict
     
     def extractElement(self, tag, sighting):
@@ -252,7 +256,7 @@ class Fix():
                 angleInstance=Angle.Angle()
                 observationFloat=angleInstance.setDegreesAndMinutes(observation)
                 if observationFloat<0.1:
-                    raise ValueError("Fix.getSightings:  observed altitude is LT. 0.1arc-minutes!")         
+                    raise ValueError("Fix.getSightings:  observed altitude is LT. 0.1arc-minutes!")   #???sighting error?       
                 height=attributeDict.get('height')
                 horizon=attributeDict.get('horizon')    
                 dip=self.calcDip(height,horizon)                # 1. calculate dip
@@ -264,7 +268,8 @@ class Fix():
                 angleInstance.setDegrees(adjustedAltitude)
                 adjustedAltitudeFormat=angleInstance.getString()      
                 attributeDict['adjustedAltitude']=adjustedAltitudeFormat
-                print "adjustedAltitude",adjustedAltitudeFormat
+            else:
+                attributeDict['adjustedAltitude']="None"
         return sightingDict
     
     def calcGeoLatiLongi(self,sightingDict):
@@ -286,62 +291,82 @@ class Fix():
                         contentString=starFileContents[starEntryNumber]
                         starEntryList.append(contentString.split())
                 starEntryList=sorted(starEntryList, cmp=lambda x,y: cmp(time.strptime(x[1], "%m/%d/%y"), time.strptime(y[1], "%m/%d/%y")))
-                starEntry=starEntryList[0]
-                latitude=starEntry[3]       #latitude stores a string, format "wdz.z"
-                attributDict['geographic position latitude']=latitude
-                print "geographic position latitude=",latitude
-                SHAstar=starEntry[2]        #SHAstar-----string
-                # calculate GHAaries: need GHAaries1, GHAaries2, s
-                self.ariesFileObject=open(self.ariesFile,'r')
-                ariesFileContents=self.ariesFileObject.readlines()
-                self.ariesFileObject.close()
-                dateValue=attributDict.get('date')
-                dateTarget=time.strftime("%m/%d/%y", time.strptime(dateValue, "%Y-%m-%d"))
-                timeValue=attributDict.get('time')
-                hourTarget1=str(time.strptime(timeValue, "%H:%M:%S")[3])
-                GHA1entry=None
-                for lineNumber in range(0,len(ariesFileContents)):
-                    if(ariesFileContents[lineNumber].find(dateTarget)>-1):
-                        if(ariesFileContents[lineNumber].split()[1].find(hourTarget1)>-1):
-                            print "*****"
-                            GHA1entry=ariesFileContents[lineNumber]
+                starEntry=None
+                dateInSightingFile=attributDict.get('date')
+                
+                for entry in starEntryList:
+                    if entry[1]==time.strftime("%m/%d/%y",time.strptime(dateInSightingFile,"%Y-%m-%d")):       # find the exact date
+                        starEntry=entry
+                if starEntry is None:
+                    # find the approximate date
+                    newStarEntryList=[]
+                    for i in range(0,len(starEntryList)): 
+                        if time.strptime(starEntryList[i][1],"%m/%d/%y") < time.strptime(dateInSightingFile,"%Y-%m-%d"):
+                            newStarEntryList.append(starEntryList[i])
+                        else:
                             break
-                GHAaries1=GHA1entry.split()[2]          # GHAaries1----string
-                hourTarget2=str((time.strptime(timeValue, "%H:%M:%S")[3]+1)%24)
-                GHA2entry=None
-                for lineNumber in range(0,len(ariesFileContents)):
-                    if(ariesFileContents[lineNumber].find(dateTarget)>-1):
-                        if(ariesFileContents[lineNumber].split()[1].find(hourTarget2)>-1):
-                            GHA2entry=ariesFileContents[lineNumber]
-                            break
-                GHAaries2=GHA2entry.split()[2]          # GHAaries2----string
-                s= time.strptime(timeValue, "%H:%M:%S")[4]*60+ time.strptime(timeValue, "%H:%M:%S")[5]
-                # calculate GHAaries: step1, temp=GHAaries2-GHAaries1
-                #                     step2, temp=|temp|---get absolute value
-                #                     step3, temp=temp*(s/3600)
-                #                     step4, temp=temp+GHAaries1
-                #                     step5, GHAaries=temp
-                GHAaries1Angle=Angle.Angle()
-                GHAaries1Angle.setDegreesAndMinutes(GHAaries1)
-                GHAaries2Angle=Angle.Angle()
-                GHAaries2Angle.setDegreesAndMinutes(GHAaries2)
-                temp=GHAaries2Angle.subtract(GHAaries1Angle)
-                temp=abs(temp)
-                temp=temp*(s/3600.0)                      # temp----float
-                tempAngle=Angle.Angle()
-                tempAngle.setDegrees(temp)
-                temp=GHAaries1Angle.add(tempAngle)        # temp----float
-                GHAaries=temp 
-                GHAariesAngle=Angle.Angle()
-                GHAariesAngle.setDegrees(GHAaries)
-                SHAstarAngle=Angle.Angle()
-                SHAstarAngle.setDegreesAndMinutes(SHAstar)
-                GHAobservation=GHAariesAngle.add(SHAstarAngle)  # result is float
-                GHAobservationAngle=Angle.Angle()
-                GHAobservationAngle.setDegrees(GHAobservation)
-                longitude=GHAobservationAngle.getString()
-                attributDict['geographic position longitude']=longitude   
-                print "geographic position longitude=",longitude             
+                    if len(newStarEntryList)==0:    #no entry found
+                        starEntry=None
+                        attributDict['errorflag']=True
+                        self.sightingErrors=self.sightingErrors+1
+                        attributDict['geographic position latitude']="None"
+                        attributDict['geographic position longitude']="None"
+                    else:
+                        starEntry=newStarEntryList[len(newStarEntryList)-1]     #found approximate one                 
+                        latitude=starEntry[3]       #latitude stores a string, format "wdz.z"
+                        attributDict['geographic position latitude']=latitude
+                        SHAstar=starEntry[2]        #SHAstar-----string
+                        # calculate GHAaries: need GHAaries1, GHAaries2, s
+                        self.ariesFileObject=open(self.ariesFile,'r')
+                        ariesFileContents=self.ariesFileObject.readlines()
+                        self.ariesFileObject.close()
+                        dateTarget=time.strftime("%m/%d/%y", time.strptime(dateInSightingFile, "%Y-%m-%d"))
+                        timeValue=attributDict.get('time')
+                        hourTarget1=str(time.strptime(timeValue, "%H:%M:%S")[3])
+                        GHA1entry=None
+                        for lineNumber in range(0,len(ariesFileContents)):
+                            if(ariesFileContents[lineNumber].find(dateTarget)>-1):
+                                if(ariesFileContents[lineNumber].split()[1].find(hourTarget1)>-1):
+                                    GHA1entry=ariesFileContents[lineNumber]
+                                    break
+                        GHAaries1=GHA1entry.split()[2]          # GHAaries1----string
+                        hourTarget2=str((time.strptime(timeValue, "%H:%M:%S")[3]+1)%24)
+                        GHA2entry=None
+                        for lineNumber in range(0,len(ariesFileContents)):
+                            if(ariesFileContents[lineNumber].find(dateTarget)>-1):
+                                if(ariesFileContents[lineNumber].split()[1].find(hourTarget2)>-1):
+                                    GHA2entry=ariesFileContents[lineNumber]
+                                    break
+                        GHAaries2=GHA2entry.split()[2]          # GHAaries2----string
+                        s= time.strptime(timeValue, "%H:%M:%S")[4]*60+ time.strptime(timeValue, "%H:%M:%S")[5]
+                        # calculate GHAaries: step1, temp=GHAaries2-GHAaries1
+                        #                     step2, temp=|temp|---get absolute value
+                        #                     step3, temp=temp*(s/3600)
+                        #                     step4, temp=temp+GHAaries1
+                        #                     step5, GHAaries=temp
+                        GHAaries1Angle=Angle.Angle()
+                        GHAaries1Angle.setDegreesAndMinutes(GHAaries1)
+                        GHAaries2Angle=Angle.Angle()
+                        GHAaries2Angle.setDegreesAndMinutes(GHAaries2)
+                        temp=GHAaries2Angle.subtract(GHAaries1Angle)
+                        temp=abs(temp)
+                        temp=temp*(s/3600.0)                      # temp----float
+                        tempAngle=Angle.Angle()
+                        tempAngle.setDegrees(temp)
+                        temp=GHAaries1Angle.add(tempAngle)        # temp----float
+                        GHAaries=temp 
+                        GHAariesAngle=Angle.Angle()
+                        GHAariesAngle.setDegrees(GHAaries)
+                        SHAstarAngle=Angle.Angle()
+                        SHAstarAngle.setDegreesAndMinutes(SHAstar)
+                        GHAobservation=GHAariesAngle.add(SHAstarAngle)  # result is float
+                        GHAobservationAngle=Angle.Angle()
+                        GHAobservationAngle.setDegrees(GHAobservation)
+                        longitude=GHAobservationAngle.getString()
+                        attributDict['geographic position longitude']=longitude  
+            else:
+                attributDict['geographic position latitude']="None"
+                attributDict['geographic position longitude']="None"          
         return sightingDict                                      
         
     def calcDip(self,height,horizon):
@@ -375,8 +400,7 @@ class Fix():
                 geoPosiLongiValue=element[1].get('geographic position longitude')
                 stringToWrite=bodyValue+"\t"+dateValue+"\t"+timeValue+"\t"+adjstAltiValue+"\t"
                 stringToWrite=stringToWrite+geoPosiLatiValue+"\t"+geoPosiLongiValue+"\n"
-                self.logFileObject.write(stringToWrite)
-                
+                self.logFileObject.write(stringToWrite)              
         stringToWrite="Sighting errors:"+"\t"+str(self.sightingErrors)+"\n"
         self.logFileObject.write(stringToWrite)           
         self.logFileObject.close()
@@ -432,4 +456,7 @@ class Fix():
             except ValueError:
                 raise ValueError("Fix.setStarFile:  logFile cannot be opened!")
         return os.path.abspath(self.starFile)
+    
+    def getAssumedLatiLogi(self):
+        return (self.assumedLatitude,self.assumedLongitude)
         
