@@ -1,7 +1,0 @@
-Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/shouldLogOneSighting.txt
-Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA05_300_ValidSightingFile.xml
-Aries file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Aries.txt
-Star file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Stars.txt
-Pollux	2017-04-14	23:50:14	15d1.5	27d59.1	83d43.8
-Sighting errors:	0
-End of sighting file CA05_300_ValidSightingFile.xml
