@@ -1,0 +1,32 @@
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/log.txt
+Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA05_300_ValidSightingFile.xml
+Star file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Stars.txt
+Aries file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Aries.txt
+Pollux	2017-04-17	23:50:14	15d1.5	27d59.1	340d59.0	N27d59.5	85d33.4	65d18.4	13d39.0
+Sighting errors:	0
+Approximate latitude:	N28d5.2	Approximate longitude:	85d45.8
+End of sighting file CA05_300_ValidSightingFile.xml
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/log.txt
+Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA05_300_ValidSightingFile.xml
+Star file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Stars.txt
+Aries file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Aries.txt
+Pollux	2017-04-17	23:50:14	15d1.5	27d59.1	340d59.0	N27d59.5	85d33.4	65d18.4	13d39.0
+Sighting errors:	0
+Approximate latitude:	N28d5.2	Approximate longitude:	85d45.8
+End of sighting file CA05_300_ValidSightingFile.xml
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/log.txt
+Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA05_300_ValidSightingFile.xml
+Star file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Stars.txt
+Aries file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Aries.txt
+Pollux	2017-04-17	23:50:14	15d1.5	27d59.1	340d59.0	N27d59.5	85d33.4	65d18.4	13d39.0
+Sighting errors:	0
+Approximate latitude:	N28d5.2	Approximate longitude:	85d45.8
+End of sighting file CA05_300_ValidSightingFile.xml
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/log.txt
+Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA05_300_ValidSightingFile.xml
+Star file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Stars.txt
+Aries file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Aries.txt
+Pollux	2017-04-17	23:50:14	15d1.5	27d59.1	340d59.0	N27d59.5	85d33.4	65d18.4	13d39.0
+Sighting errors:	0
+Approximate latitude:	N28d5.2	Approximate longitude:	85d45.8
+End of sighting file CA05_300_ValidSightingFile.xml

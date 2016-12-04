@@ -9,19 +9,12 @@ import os.path
 import xml.dom.minidom
 import Navigation.prod.Angle as Angle
 
-from __builtin__ import str, False
-from _ast import Str
-from datetime import datetime
-from itertools import count
-
 
 class Fix():    
     
     def __init__(self, logFile=None):
         self.logFileName=None
         self.logFileObject=None
-        self.approximateLatitude=None
-        self.approximateLongitude=None
         self.ariesFile=None
         self.starFile=None
         self.xmlFileName=None
@@ -31,6 +24,8 @@ class Fix():
         self.sightingErrors=0
         self.assumedLatitude=None
         self.assumedLongitude=None
+        self.approximateLatitude=None
+        self.approximateLongitude=None
                 
         if logFile is None:
             self.logFileName="log.txt"
@@ -90,18 +85,283 @@ class Fix():
             raise ValueError("Fix.getSightings:  aries file has not been set!")
         if self.starFile is None:
             raise ValueError("Fix.getSightings:  star file has not been set!") 
-        self.approximateLatitude="0d0.0"
-        self.approximateLongitude="0d0.0"   
+        # Defaults to "0d0.0" for missing parameter:
+        if assumedLatitude is None:
+            self.assumedLatitude="0d0.0"           
+        if assumedLongitude is None:
+            self.assumedLongitude="0d0.0"
+        # Raise Error on invalid parameter:
+        if (assumedLatitude is not None) and (not isinstance(assumedLatitude, str)):
+            raise ValueError("Fix.getSightings:    assumedLatitude should be a string!")
+        if (assumedLongitude is not None) and (not isinstance(assumedLongitude, str)):
+            raise ValueError("Fix.getSightings:    assumedLongitude should be a string!")
+        if isinstance(assumedLatitude, str) and (assumedLatitude.find("d")==-1):
+            raise ValueError("Fix.getSightings:    missing 'd' in assumedLatitude!")
+        if isinstance(assumedLongitude, str) and (assumedLongitude.find("d")==-1):
+            raise ValueError("Fix.getSightings:    missing 'd' in assumedLongitude!")
+        if isinstance(assumedLatitude, str) and assumedLatitude.find("d")>-1 and self.assumedLatiHas_h(assumedLatitude):
+            if (not self.assumedLatitudeXisValid(assumedLatitude)) or (
+                                                            not self.assumedLatiLongiYdotYisValid(assumedLatitude)):
+                raise ValueError("Fix.getSightings:    assumedLatitude with h has X or Y.Y invalid!")
+            else:
+                strWithout_h=assumedLatitude[1:]
+                if strWithout_h=="0d0.0":
+                    raise ValueError("Fix.getSightings:    assumedLatitude with h cannot be 0d0.0!")
+        if isinstance(assumedLatitude, str) and assumedLatitude.find("d")>-1 and (
+                                                                        not self.assumedLatiHas_h(assumedLatitude)):
+            if (not self.assumedLatitudeXisValid(assumedLatitude)) or (
+                                                            not self.assumedLatiLongiYdotYisValid(assumedLatitude)):
+                raise ValueError("Fix.getSightings:    assumedLatitude without h has X or Y.Y invalid!")
+            else:
+                if assumedLatitude!="0d0.0":
+                    raise ValueError("Fix.getSightings:    assumedLatitude without h has to be 0d0.0!")
+        
+        if isinstance(assumedLongitude, str) and (assumedLongitude.find("d")>-1) and (
+                (not self.assumedLongitudeXisValid(assumedLongitude)) or (not self.assumedLatiLongiYdotYisValid(assumedLongitude))):
+            raise ValueError("Fix.getSightings:    assumedLongitude X or Y.Y is invalid!")
+        # above code have exclude all invalid parameters that is not None
+        # what remains are valid string parameters:  
+        #         so we can directly use parameter values in our calculation
+        if assumedLatitude is not None:
+            self.assumedLatitude=assumedLatitude            # is a string
+        if assumedLongitude is not None:
+            self.assumedLongitude=assumedLongitude          # is a string
+        #---- Step 1: Build Sighting Dictionary
         tree=self.buildDOM(self.xmlFileName)
         sightingDict=self.extractSighting(tree) 
         sightingDict=self.adjustedAltitude(sightingDict)
-        sightingDict=self.calcGeoLatiLongi(sightingDict)
-        self.writeToLog(sightingDict) 
+        sightingDict=self.calcGeoLatiLongi(sightingDict)    #goal is: add geoPostions of each sighting to dictionary 
+                # update: azimuthAdjustment, distanceAdjustment,  in sightingDic.
+        assLaLongTuple=(self.assumedLatitude, self.assumedLongitude)
+        sightingDict=self.calculateDistanceAdjustment(sightingDict, assLaLongTuple)
+        sightingDict=self.calculateAzimuthAdjustment(sightingDict, assLaLongTuple)
+        #---- Step 2: Calculate return value
+        self.approximateLatitude=self.calculateApproximateLatitude(sightingDict, assLaLongTuple)
+        self.approximateLongitude=self.calculateApproximateLongitude(sightingDict, assLaLongTuple)
+        resultTuple=(self.approximateLatitude, self.approximateLongitude)
+        #---- Step 3: State Change
+        self.writeToLog(sightingDict)
         self.logFileObject=open(self.logFileName,"a")
         self.logFileObject.write("End of sighting file "+self.xmlFileName+"\n") 
         self.logFileObject.close()
-        result=(self.approximateLatitude, self.approximateLongitude) 
-        return result       
+        return resultTuple
+    
+    def calculateApproximateLatitude(self, sightDic, assLaLonTuple):
+        sumSighting=0
+        #----iterate through sighting dictionary, calculate apprximateLatitude based on error-free sightings        
+        for eachSighting in sightDic:
+            attributeDict=sightDic.get(eachSighting)
+            if attributeDict.get('errorflag')=="False":
+                disAjst=attributeDict.get('distance adjustment')
+                aziAjst=attributeDict.get('azimuth adjustment')
+                disAjst=self.convertAngleStr_AngleFloat(disAjst)
+                aziAjst=self.convertAngleStr_AngleFloat(aziAjst)
+                sumSighting=sumSighting + disAjst*(math.cos(math.radians(aziAjst)))
+        assLati=assLaLonTuple[0]        # is a string
+        if self.assumedLatiHas_h(assLati):
+            assumedLati_h=assLati[0]
+            angleStr=assLati[1:]
+            angleFloat=self.convertAngleStr_AngleFloat(angleStr)        #angleStr in form xdy.y
+            approximateLatiNum=abs(angleFloat + sumSighting/60.0)
+            approximateLati=self.convertAngleFloat_AngleStr(approximateLatiNum)
+            approximateLati=assumedLati_h+approximateLati
+        else:                   # not self.assumedLatiHas_h
+            angleFloat=0.0
+            approximateLatiNum=abs(angleFloat+ sumSighting/60.0)
+            approximateLati=self.convertAngleFloat_AngleStr(approximateLatiNum)
+        return approximateLati  
+    
+    def calculateApproximateLongitude(self, sightDic, assLaLonTuple): 
+        sumSighting=0
+        for sightNumber in sightDic:
+            attributeDict=sightDic.get(sightNumber)
+            if attributeDict.get('errorflag')=="False":
+                disAjst=attributeDict.get('distance adjustment')
+                aziAjst=attributeDict.get('azimuth adjustment')
+                disAjst=self.convertAngleStr_AngleFloat(disAjst)
+                aziAjst=self.convertAngleStr_AngleFloat(aziAjst)
+                sumSighting=sumSighting +disAjst*(math.sin(math.radians(aziAjst)))
+        assLongi=assLaLonTuple[1]        # is a string
+        angleStr=assLongi
+        angleFloat=self.convertAngleStr_AngleFloat(angleStr)
+        approximateLongiNum=angleFloat + sumSighting/60.0
+        approximateLongi=self.convertAngleFloat_AngleStr(approximateLongiNum)
+        return approximateLongi
+    
+    def calculateDistanceAdjustment(self, sightDic, assLaLongTuple):   
+        for eachSighting in sightDic:
+            attributeDic=sightDic.get(eachSighting)
+            if attributeDic.get('errorflag')=="False":
+                adjustAltitudeStr=attributeDic.get('adjustedAltitude')
+                adjustAltitudeFloat=self.convertAngleStr_AngleFloat(adjustAltitudeStr) 
+                correctedAltitude=self.calculateCorrectedAltitude(attributeDic, assLaLongTuple)
+                result=adjustAltitudeFloat-correctedAltitude
+                result_degree=int(result)
+                result_minute=round((result-result_degree)*60)
+                result=result_degree+ result_minute/60
+                distanceAdjust=self.convertAngleFloat_AngleStr(result)
+                attributeDic['distance adjustment']=distanceAdjust
+            else:
+                attributeDic['distance adjustment']="None"
+        return sightDic
+    
+    def calculateAzimuthAdjustment(self, sightDic, assLaLongTuple): 
+        for sightNumber in sightDic:
+            attributeDic=sightDic.get(sightNumber)
+            if attributeDic.get('errorflag')=="False":           
+                geoPosiLati=attributeDic.get('geographic position latitude')        # is a string
+                assumedLati=assLaLongTuple[0]                                       # is a string
+                distanceAdjust=attributeDic.get('distance adjustment')              # is a string
+                if self.assumedLatiHas_h(assumedLati):
+                    assumedLati_without_h=assumedLati[1:]
+                    assumedLati_h=assumedLati[0]
+                    x=self.convertAngleStr_AngleFloat(assumedLati_without_h)
+                    if assumedLati_h=="S":
+                        x=0-x
+                else:
+                    x=self.convertAngleStr_AngleFloat(assumedLati)
+                #---- x=assumedLati; y=geoPosiLati; z=distanceAdjust
+                y=self.convertAngleStr_AngleFloat(geoPosiLati)
+                z=self.convertAngleStr_AngleFloat(distanceAdjust)
+                x=math.radians(x)
+                y=math.radians(y)
+                z=math.radians(z)
+                numerator=math.sin(y) - (math.sin(x)) * (math.sin(z)) 
+                denomenator= (math.cos(x)) * (math.cos(z))
+                result_radians=math.acos( numerator/denomenator  )
+                result=math.degrees(result_radians)
+                azimuthAdjust=self.convertAngleFloat_AngleStr(result)
+                attributeDic['azimuth adjustment']=azimuthAdjust
+            else:
+                attributeDic['azimuth adjustment']="None"
+        return sightDic
+    
+    def calculateCorrectedAltitude(self, attributeDic, assLaLongTuple):
+        geoPosiLati=attributeDic.get('geographic position latitude')        # is a string
+        assumedLati=assLaLongTuple[0]                               # is a string
+        if self.assumedLatiHas_h(assumedLati):
+            assumedLati_without_h=assumedLati[1:]
+            y=self.convertAngleStr_AngleFloat(assumedLati_without_h)        # is a float in degree
+            assumedLati_h=assumedLati[0]
+            if assumedLati_h=="S":
+                y=0-y               # is a float in degree
+        else:
+            y=self.convertAngleStr_AngleFloat(assumedLati)           
+        LHA=self.calculateLHA(attributeDic, assLaLongTuple)         # is a float
+        #---- x=geoPosiLati; y=assumedLati
+        x=self.convertAngleStr_AngleFloat(geoPosiLati)          # float in degree
+        #---- correctedAltitude= arcsin { sin(x)*sin(y) + cos(x)*cos(y)*cos(LHA) }
+        x=math.radians(x)
+        y=math.radians(y)
+        LHA=math.radians(LHA)
+        result_radians=math.asin((math.sin(x)) * (math.sin(y))   + (math.cos(x)) * (math.cos(y)) * (math.cos(LHA)) )
+        result=math.degrees(result_radians)
+        return result
+        
+    def calculateLHA(self, attributeDic, assLaLongTuple):
+        geoPosiLongi=attributeDic.get('geographic position longitude')      # is a string
+        assumedLongi=assLaLongTuple[1]              # is a string
+        geoPosiLongi_Float=self.convertAngleStr_AngleFloat(geoPosiLongi)
+        assumedLongi_Float=self.convertAngleStr_AngleFloat(assumedLongi)
+        LHA=geoPosiLongi_Float-assumedLongi_Float
+        return LHA
+              
+    def convertAngleStr_AngleFloat(self,angleStr):
+        A=Angle.Angle()
+        angleFloat=A.setDegreesAndMinutes(angleStr)
+        return angleFloat
+    
+    def convertAngleFloat_AngleStr(self, angleFloat):
+        A=Angle.Angle()
+        A.setDegrees(angleFloat)
+        angleStr=A.getString()
+        return angleStr
+    
+    def assumedLatiHas_h(self, latiStr):
+        if latiStr.find("N")>-1 or latiStr.find("S")>-1:
+            return True
+        else:
+            return False   
+    
+    def assumedLatitudeXisValid(self, latiStr):
+        d_index=latiStr.find("d")
+        left_d_Str=latiStr[:d_index]
+        if left_d_Str.find("N")>-1 or left_d_Str.find("S")>-1:
+            if left_d_Str.find("N")>-1 and left_d_Str.find("S")>-1:
+                return False
+            elif left_d_Str.find("N")>-1 and left_d_Str.find("S")==-1:
+                N_index=left_d_Str.find("N")
+                left_N_Str=left_d_Str[:N_index]
+                right_N_Str=left_d_Str[N_index+1:]
+                if len(left_N_Str)>0:
+                    return False
+                if not right_N_Str.isdigit():
+                    return False
+                else:
+                    right_N_num=int(right_N_Str)
+                    if 0<=right_N_num<90:
+                        return True
+                    else:
+                        return False
+            else:
+                S_index=left_d_Str.find("S")
+                left_S_Str=left_d_Str[:S_index]
+                right_S_Str=left_d_Str[S_index+1:]
+                if len(left_S_Str)>0:
+                    return False
+                if not right_S_Str.isdigit():
+                    return False
+                else:
+                    right_S_num=int(right_S_Str)
+                    if 0<=right_S_num<90:
+                        return True
+                    else:
+                        return False
+        else:
+            if not left_d_Str.isdigit():
+                return False
+            else:
+                left_d_num=int(left_d_Str)
+                if 0<=left_d_num<90:
+                    return True
+                else:
+                    return False
+    
+    def assumedLongitudeXisValid(self, longiStr): 
+        d_index=longiStr.find("d")
+        stringX=longiStr[:d_index]
+        if not stringX.isdigit():
+            return False
+        else:
+            numX=int(stringX)
+            if 0<=numX<360:
+                return True
+            else:
+                return False
+                
+    def assumedLatiLongiYdotYisValid(self, latiLongiStr):
+        d_index=latiLongiStr.find("d")
+        stringYdotY=latiLongiStr[d_index+1:]
+        if stringYdotY.find(".")==-1:
+            return False
+        else:
+            dot_index=stringYdotY.find(".")
+            leftDotStr=stringYdotY[:dot_index] 
+            rightDotStr=stringYdotY[dot_index+1:]
+            if (leftDotStr.find(".")>-1) or (rightDotStr.find(".")>-1):
+                return False
+            elif len(rightDotStr)!=1:
+                return False
+            elif not rightDotStr.isdigit():
+                return False
+            elif not leftDotStr.isdigit():
+                return False
+            else:
+                numYdotY=float(stringYdotY)
+                if 0.0<=numYdotY<60.0:
+                    return True
+                else:
+                    return False        
             
     def buildDOM(self, fileName):
         DOMTree=xml.dom.minidom.parse(fileName)
@@ -171,7 +431,7 @@ class Fix():
             else:
                 attributeDict['horizon']=horizon
                 
-            attributeDict['errorflag']=errorflag
+            attributeDict['errorflag']=str(errorflag)
             if errorflag is True:
                 self.sightingErrors=self.sightingErrors+1
             i=i+1                 
@@ -251,7 +511,7 @@ class Fix():
     def adjustedAltitude(self, sightingDict):
         for eachSighting in sightingDict:
             attributeDict=sightingDict.get(eachSighting)
-            if attributeDict.get('errorflag') is False: 
+            if attributeDict.get('errorflag')=="False": 
                 observation=attributeDict.get('observation')                    #observation value e.g "045d15.2"
                 angleInstance=Angle.Angle()
                 observationFloat=angleInstance.setDegreesAndMinutes(observation)
@@ -272,102 +532,117 @@ class Fix():
                 attributeDict['adjustedAltitude']="None"
         return sightingDict
     
-    def calcGeoLatiLongi(self,sightingDict):
+    def calcGeoLatiLongi(self, sightDic):
         if (self.xmlFileName is None) or (self.ariesFile is None) or (self.starFile is None):
             raise ValueError("Fix.getSightings:  sighting file/aries file/star file, has not been set!")
-        for eachSighting in sightingDict:
-            attributDict=sightingDict.get(eachSighting)
-            if attributDict.get('errorflag') is False:
-                # locate star entry
-                starEntry=[]
-                starEntryList=[]        # starEntryList is a list of lines that has same body
-                bodyValue=attributDict.get('body')
-                self.starFileObject=open(self.starFile,'r')
-                starFileContents=self.starFileObject.readlines()
-                self.starFileObject.close()
-                for starEntryNumber in range(0,len(starFileContents)):
-                    if(starFileContents[starEntryNumber].find(bodyValue) > -1):
-                        #store entries in form of a list of tuples
-                        contentString=starFileContents[starEntryNumber]
-                        starEntryList.append(contentString.split())
-                starEntryList=sorted(starEntryList, cmp=lambda x,y: cmp(time.strptime(x[1], "%m/%d/%y"), time.strptime(y[1], "%m/%d/%y")))
-                starEntry=None
-                dateInSightingFile=attributDict.get('date')
-                
-                for entry in starEntryList:
-                    if entry[1]==time.strftime("%m/%d/%y",time.strptime(dateInSightingFile,"%Y-%m-%d")):       # find the exact date
-                        starEntry=entry
-                if starEntry is None:
-                    # find the approximate date
-                    newStarEntryList=[]
-                    for i in range(0,len(starEntryList)): 
-                        if time.strptime(starEntryList[i][1],"%m/%d/%y") < time.strptime(dateInSightingFile,"%Y-%m-%d"):
-                            newStarEntryList.append(starEntryList[i])
-                        else:
-                            break
-                    if len(newStarEntryList)==0:    #no entry found
-                        starEntry=None
-                        attributDict['errorflag']=True
-                        self.sightingErrors=self.sightingErrors+1
-                        attributDict['geographic position latitude']="None"
-                        attributDict['geographic position longitude']="None"
-                    else:
-                        starEntry=newStarEntryList[len(newStarEntryList)-1]     #found approximate one                 
-                        latitude=starEntry[3]       #latitude stores a string, format "wdz.z"
-                        attributDict['geographic position latitude']=latitude
-                        SHAstar=starEntry[2]        #SHAstar-----string
-                        # calculate GHAaries: need GHAaries1, GHAaries2, s
-                        self.ariesFileObject=open(self.ariesFile,'r')
-                        ariesFileContents=self.ariesFileObject.readlines()
-                        self.ariesFileObject.close()
-                        dateTarget=time.strftime("%m/%d/%y", time.strptime(dateInSightingFile, "%Y-%m-%d"))
-                        timeValue=attributDict.get('time')
-                        hourTarget1=str(time.strptime(timeValue, "%H:%M:%S")[3])
-                        GHA1entry=None
-                        for lineNumber in range(0,len(ariesFileContents)):
-                            if(ariesFileContents[lineNumber].find(dateTarget)>-1):
-                                if(ariesFileContents[lineNumber].split()[1].find(hourTarget1)>-1):
-                                    GHA1entry=ariesFileContents[lineNumber]
-                                    break
-                        GHAaries1=GHA1entry.split()[2]          # GHAaries1----string
-                        hourTarget2=str((time.strptime(timeValue, "%H:%M:%S")[3]+1)%24)
-                        GHA2entry=None
-                        for lineNumber in range(0,len(ariesFileContents)):
-                            if(ariesFileContents[lineNumber].find(dateTarget)>-1):
-                                if(ariesFileContents[lineNumber].split()[1].find(hourTarget2)>-1):
-                                    GHA2entry=ariesFileContents[lineNumber]
-                                    break
-                        GHAaries2=GHA2entry.split()[2]          # GHAaries2----string
-                        s= time.strptime(timeValue, "%H:%M:%S")[4]*60+ time.strptime(timeValue, "%H:%M:%S")[5]
-                        # calculate GHAaries: step1, temp=GHAaries2-GHAaries1
-                        #                     step2, temp=|temp|---get absolute value
-                        #                     step3, temp=temp*(s/3600)
-                        #                     step4, temp=temp+GHAaries1
-                        #                     step5, GHAaries=temp
-                        GHAaries1Angle=Angle.Angle()
-                        GHAaries1Angle.setDegreesAndMinutes(GHAaries1)
-                        GHAaries2Angle=Angle.Angle()
-                        GHAaries2Angle.setDegreesAndMinutes(GHAaries2)
-                        temp=GHAaries2Angle.subtract(GHAaries1Angle)
-                        temp=abs(temp)
-                        temp=temp*(s/3600.0)                      # temp----float
-                        tempAngle=Angle.Angle()
-                        tempAngle.setDegrees(temp)
-                        temp=GHAaries1Angle.add(tempAngle)        # temp----float
-                        GHAaries=temp 
-                        GHAariesAngle=Angle.Angle()
-                        GHAariesAngle.setDegrees(GHAaries)
-                        SHAstarAngle=Angle.Angle()
-                        SHAstarAngle.setDegreesAndMinutes(SHAstar)
-                        GHAobservation=GHAariesAngle.add(SHAstarAngle)  # result is float
-                        GHAobservationAngle=Angle.Angle()
-                        GHAobservationAngle.setDegrees(GHAobservation)
-                        longitude=GHAobservationAngle.getString()
-                        attributDict['geographic position longitude']=longitude  
+        for sightNum in sightDic:
+            attributeDic=sightDic.get(sightNum)
+            if attributeDic.get('errorflag')==str(False):
+                #---- Part A
+                bodyName=attributeDic.get('body')       # is a string
+                dateValue=attributeDic.get('date')      # is a string
+                resultA=self.findAngularDisplacementOfStarRelativeToAries(bodyName, dateValue)
+                SHA_star=resultA[0]         # is a string
+                geoPosiLati=resultA[1]      # is a string
+                #---- Part B
+                timeValue=attributeDic.get('time')      # is a string
+                GHA_aries=self.findGHAofAries(dateValue, timeValue)
+                #---- Part C
+                geoPosiLongi=self.calculateStarGHA(GHA_aries, SHA_star)     # is a string
+                #---- write geoPosi to dictionary
+                attributeDic['geographic position latitude']=geoPosiLati
+                attributeDic['geographic position longitude']=geoPosiLongi
             else:
-                attributDict['geographic position latitude']="None"
-                attributDict['geographic position longitude']="None"          
-        return sightingDict                                      
+                attributeDic['geographic position latitude']="None"
+                attributeDic['geographic position longitude']="None"
+        return sightDic
+    
+    def calculateStarGHA(self, GHAaries_float, SHAstar_str):
+        SHAstar_float=self.convertAngleStr_AngleFloat(SHAstar_str)
+        GHAobservation_float=GHAaries_float+SHAstar_float
+        GHAobservation_str=self.convertAngleFloat_AngleStr(GHAobservation_float)
+        geoPosiLongi=GHAobservation_str
+        return geoPosiLongi
+    
+    def findGHAofAries(self, dateValue, timeValue):
+        self.ariesFileObject=open(self.ariesFile,'r')
+        ariesFileContent=self.ariesFileObject.readlines()       # a list of lines
+        self.ariesFileObject.close()
+        hour1=time.strptime(timeValue,"%H:%M:%S")[3]            # is an integer
+        dateValue_in_AriesFileFormat=time.strftime("%m-%d-%y", time.strptime(dateValue, "%Y-%m-%d"))
+        entry1=self.findGHAentry(ariesFileContent, dateValue_in_AriesFileFormat, hour1)
+        hour2=(hour1+1) % 24
+        entry2=self.findGHAentry(ariesFileContent, dateValue_in_AriesFileFormat, hour2)
+        GHAaries1=entry1.split()[2]         #is a string
+        GHAaries2=entry2.split()[2]         #is a string
+        time_minutes=time.strptime(timeValue,"%H:%M:%S")[4]
+        time_seconds=time.strptime(timeValue,"%H:%M:%S")[5]
+        s=time_minutes*60+time_seconds
+        GHAaries1=self.convertAngleStr_AngleFloat(GHAaries1)
+        GHAaries2=self.convertAngleStr_AngleFloat(GHAaries2)
+        GHAaries_float=GHAaries1+ abs(GHAaries2-GHAaries1) * (s/3600.0)
+        return GHAaries_float
+    
+    def findGHAentry(self, list_of_Lines, date_in_AriesFileFormat, hour_int):
+        result=None    
+        for lineIndex in range(0,len(list_of_Lines)):
+            line=list_of_Lines[lineIndex]
+            if line.find(date_in_AriesFileFormat):
+                alist_of_oneLineContent=line.split()
+                hourStr=alist_of_oneLineContent[1]
+                if hourStr==str(hour_int):
+                    result=line
+        return result                 
+   
+    def findAngularDisplacementOfStarRelativeToAries(self, bodyStr, dateStr):
+        #---- return a tuple, (SHAstar, geoPosiLati)
+        dateStr=self.convertToDateFormat_in_StarFile_or_AriesFile(dateStr)
+        self.starFileObject=open(self.starFile,'r')
+        starFileContents=self.starFileObject.readlines()
+        self.starFileObject.close()
+        listOfLinesWithBodyValue_bodyStr=[]
+        for line in starFileContents:
+            if line.find(bodyStr)>-1:
+                listOfLinesWithBodyValue_bodyStr.append(line)
+        exactDateLine=self.findExactDateinList(dateStr, listOfLinesWithBodyValue_bodyStr)
+        if exactDateLine is not None:
+            starEntryStr=exactDateLine
+        else:
+            starEntryStr=self.findApproximateDateinList(dateStr, listOfLinesWithBodyValue_bodyStr)
+        #---- assign value to result
+        starEntry_List=starEntryStr.split()
+        SHAstar=starEntry_List[2]           # column 3
+        geoPosiLati=starEntry_List[3]         # column 4
+        result=(SHAstar, geoPosiLati)       # is a tuple of strings
+        return result        
+    
+    def convertToDateFormat_in_StarFile_or_AriesFile(self, dateStr):
+        result=time.strftime("%m/%d/%y", time.strptime(dateStr, "%Y-%m-%d"))
+        return result
+    
+    def findExactDateinList(self, date, list_ofLines):
+        result=None
+        for index in range(0, len(list_ofLines)):
+            line=list_ofLines[index]
+            if line.find(date)>-1:
+                result=line
+        return result
+        
+    def findApproximateDateinList(self, dateStr, listOfLines):
+        #----convert listOfLines to dictionaries with date as key
+        dic={}
+        for eachElement_Line in listOfLines:
+            date=eachElement_Line.split()[1]      
+            key=time.strftime("%Y-%m-%d",time.strptime(date, "%m/%d/%y"))          
+            dic[key]=eachElement_Line
+        orderedList=sorted(dic.items(), key=lambda x: x[0])
+        dateStr_ISOformat=time.strftime("%Y-%m-%d",time.strptime(dateStr, "%m/%d/%y"))
+        for elementIndex in range(0,len(orderedList)):
+            if orderedList[elementIndex][0]>dateStr_ISOformat:
+                index=elementIndex-1
+                break
+        starEntryStr=orderedList[index][1]
+        return starEntryStr                                    
         
     def calcDip(self,height,horizon):
         if horizon=='natural':
@@ -391,18 +666,25 @@ class Fix():
         orderedList=sorted(sightingList, key=lambda x: (x[1].get('date'),x[1].get('body')))
         self.logFileObject=open(self.logFileName,"a")
         for element in orderedList:
-            if element[1].get('errorflag') is False:
-                bodyValue=element[1].get('body')
-                dateValue=element[1].get('date')
-                timeValue=element[1].get('time')
-                adjstAltiValue=element[1].get('adjustedAltitude')
-                geoPosiLatiValue=element[1].get('geographic position latitude')
-                geoPosiLongiValue=element[1].get('geographic position longitude')
-                stringToWrite=bodyValue+"\t"+dateValue+"\t"+timeValue+"\t"+adjstAltiValue+"\t"
-                stringToWrite=stringToWrite+geoPosiLatiValue+"\t"+geoPosiLongiValue+"\n"
+            if element[1].get('errorflag')=="False":
+                body=element[1].get('body')
+                date=element[1].get('date')
+                time=element[1].get('time')
+                adjustedAltitude=element[1].get('adjustedAltitude')
+                geoPosiLati=element[1].get('geographic position latitude')
+                geoPosiLongi=element[1].get('geographic position longitude')
+                azimuthAdjustment=element[1].get('azimuth adjustment')
+                distanceAdjustment=element[1].get('distance adjustment')
+                stringToWrite=body+"\t"+date+"\t"+time+"\t"+adjustedAltitude+"\t"
+                stringToWrite=stringToWrite+geoPosiLati+"\t"+geoPosiLongi+"\t"
+                stringToWrite=stringToWrite+self.assumedLatitude +"\t" + self.assumedLongitude+"\t"
+                stringToWrite=stringToWrite+ azimuthAdjustment+ "\t"+ distanceAdjustment+ "\n"
                 self.logFileObject.write(stringToWrite)              
-        stringToWrite="Sighting errors:"+"\t"+str(self.sightingErrors)+"\n"
-        self.logFileObject.write(stringToWrite)           
+        stringToWrite1="Sighting errors:"+"\t"+str(self.sightingErrors)+"\n"
+        self.logFileObject.write(stringToWrite1)
+        stringToWrite2="Approximate latitude:"+ "\t"+ self.approximateLatitude+ "\t"
+        stringToWrite2=stringToWrite2+ "Approximate longitude:"+ "\t"+ self.approximateLongitude+ "\n"
+        self.logFileObject.write(stringToWrite2)
         self.logFileObject.close()
     
     def setAriesFile(self,ariesFile=None): 
