@@ -5,6 +5,7 @@ Created on Oct 7, 2016
 '''
 import math
 import time
+import datetime
 import os.path
 import xml.dom.minidom
 import Navigation.prod.Angle as Angle
@@ -154,9 +155,9 @@ class Fix():
             if attributeDict.get('errorflag')=="False":
                 disAjst=attributeDict.get('distance adjustment')
                 aziAjst=attributeDict.get('azimuth adjustment')
-                disAjst=self.convertAngleStr_AngleFloat(disAjst)
+                disAjst=int(disAjst)
                 aziAjst=self.convertAngleStr_AngleFloat(aziAjst)
-                sumSighting=sumSighting + disAjst*(math.cos(math.radians(aziAjst)))
+                sumSighting=sumSighting + disAjst* (math.cos(math.radians(aziAjst)))
         assLati=assLaLonTuple[0]        # is a string
         if self.assumedLatiHas_h(assLati):
             assumedLati_h=assLati[0]
@@ -178,9 +179,9 @@ class Fix():
             if attributeDict.get('errorflag')=="False":
                 disAjst=attributeDict.get('distance adjustment')
                 aziAjst=attributeDict.get('azimuth adjustment')
-                disAjst=self.convertAngleStr_AngleFloat(disAjst)
+                disAjst=int(disAjst)
                 aziAjst=self.convertAngleStr_AngleFloat(aziAjst)
-                sumSighting=sumSighting +disAjst*(math.sin(math.radians(aziAjst)))
+                sumSighting=sumSighting +disAjst* (math.sin(math.radians(aziAjst)))
         assLongi=assLaLonTuple[1]        # is a string
         angleStr=assLongi
         angleFloat=self.convertAngleStr_AngleFloat(angleStr)
@@ -195,11 +196,11 @@ class Fix():
                 adjustAltitudeStr=attributeDic.get('adjustedAltitude')
                 adjustAltitudeFloat=self.convertAngleStr_AngleFloat(adjustAltitudeStr) 
                 correctedAltitude=self.calculateCorrectedAltitude(attributeDic, assLaLongTuple)
-                result=adjustAltitudeFloat-correctedAltitude
+                result=correctedAltitude - adjustAltitudeFloat
                 result_degree=int(result)
                 result_minute=round((result-result_degree)*60)
-                result=result_degree+ result_minute/60
-                distanceAdjust=self.convertAngleFloat_AngleStr(result)
+                result=result_degree*60 + int(result_minute)
+                distanceAdjust=str(result)
                 attributeDic['distance adjustment']=distanceAdjust
             else:
                 attributeDic['distance adjustment']="None"
@@ -210,8 +211,7 @@ class Fix():
             attributeDic=sightDic.get(sightNumber)
             if attributeDic.get('errorflag')=="False":           
                 geoPosiLati=attributeDic.get('geographic position latitude')        # is a string
-                assumedLati=assLaLongTuple[0]                                       # is a string
-                distanceAdjust=attributeDic.get('distance adjustment')              # is a string
+                assumedLati=assLaLongTuple[0]                                       # is a string          
                 if self.assumedLatiHas_h(assumedLati):
                     assumedLati_without_h=assumedLati[1:]
                     assumedLati_h=assumedLati[0]
@@ -220,14 +220,20 @@ class Fix():
                         x=0-x
                 else:
                     x=self.convertAngleStr_AngleFloat(assumedLati)
-                #---- x=assumedLati; y=geoPosiLati; z=distanceAdjust
+                
+                #---- x=assumedLati; y=geoPosiLati; p=correctedAltitude
+                correctedAltitude_float=self.calculateCorrectedAltitude(attributeDic, assLaLongTuple)
+                LHA_str=self.calculateLHA(attributeDic, assLaLongTuple)
+                LHA_float=self.convertAngleStr_AngleFloat(LHA_str)
                 y=self.convertAngleStr_AngleFloat(geoPosiLati)
-                z=self.convertAngleStr_AngleFloat(distanceAdjust)
                 x=math.radians(x)
                 y=math.radians(y)
-                z=math.radians(z)
-                numerator=math.sin(y) - (math.sin(x)) * (math.sin(z)) 
-                denomenator= (math.cos(x)) * (math.cos(z))
+                p=math.radians(correctedAltitude_float)
+                LHA=math.radians(LHA_float)
+                #---- calculate intermediate distance
+                intermDistance=math.sin(y)*math.sin(x) + math.cos(y)*math.cos(x)*math.cos(LHA)
+                numerator=math.sin(y) - (math.sin(x)) * intermDistance
+                denomenator= (math.cos(x)) * (math.cos(p))
                 result_radians=math.acos( numerator/denomenator  )
                 result=math.degrees(result_radians)
                 azimuthAdjust=self.convertAngleFloat_AngleStr(result)
@@ -247,24 +253,26 @@ class Fix():
                 y=0-y               # is a float in degree
         else:
             y=self.convertAngleStr_AngleFloat(assumedLati)           
-        LHA=self.calculateLHA(attributeDic, assLaLongTuple)         # is a float
+        LHA_str=self.calculateLHA(attributeDic, assLaLongTuple)         
+        LHA_float=self.convertAngleStr_AngleFloat(LHA_str)
         #---- x=geoPosiLati; y=assumedLati
         x=self.convertAngleStr_AngleFloat(geoPosiLati)          # float in degree
         #---- correctedAltitude= arcsin { sin(x)*sin(y) + cos(x)*cos(y)*cos(LHA) }
         x=math.radians(x)
         y=math.radians(y)
-        LHA=math.radians(LHA)
+        LHA=math.radians(LHA_float)
         result_radians=math.asin((math.sin(x)) * (math.sin(y))   + (math.cos(x)) * (math.cos(y)) * (math.cos(LHA)) )
-        result=math.degrees(result_radians)
-        return result
+        result_float=math.degrees(result_radians)
+        return result_float
         
     def calculateLHA(self, attributeDic, assLaLongTuple):
         geoPosiLongi=attributeDic.get('geographic position longitude')      # is a string
         assumedLongi=assLaLongTuple[1]              # is a string
         geoPosiLongi_Float=self.convertAngleStr_AngleFloat(geoPosiLongi)
         assumedLongi_Float=self.convertAngleStr_AngleFloat(assumedLongi)
-        LHA=geoPosiLongi_Float-assumedLongi_Float
-        return LHA
+        LHA_float=geoPosiLongi_Float + assumedLongi_Float
+        LHA_str=self.convertAngleFloat_AngleStr(LHA_float)
+        return LHA_str
               
     def convertAngleStr_AngleFloat(self,angleStr):
         A=Angle.Angle()
@@ -557,7 +565,8 @@ class Fix():
                 attributeDic['geographic position longitude']="None"
         return sightDic
     
-    def calculateStarGHA(self, GHAaries_float, SHAstar_str):
+    def calculateStarGHA(self, GHAaries_str, SHAstar_str):
+        GHAaries_float=self.convertAngleStr_AngleFloat(GHAaries_str)
         SHAstar_float=self.convertAngleStr_AngleFloat(SHAstar_str)
         GHAobservation_float=GHAaries_float+SHAstar_float
         GHAobservation_str=self.convertAngleFloat_AngleStr(GHAobservation_float)
@@ -569,25 +578,32 @@ class Fix():
         ariesFileContent=self.ariesFileObject.readlines()       # a list of lines
         self.ariesFileObject.close()
         hour1=time.strptime(timeValue,"%H:%M:%S")[3]            # is an integer
-        dateValue_in_AriesFileFormat=time.strftime("%m-%d-%y", time.strptime(dateValue, "%Y-%m-%d"))
+        dateValue_in_AriesFileFormat=time.strftime("%m/%d/%y", time.strptime(dateValue, "%Y-%m-%d"))
         entry1=self.findGHAentry(ariesFileContent, dateValue_in_AriesFileFormat, hour1)
         hour2=(hour1+1) % 24
-        entry2=self.findGHAentry(ariesFileContent, dateValue_in_AriesFileFormat, hour2)
+        if ((hour1+1)/24)==1:
+            oldDateObject=datetime.datetime.strptime(dateValue_in_AriesFileFormat, "%m/%d/%y")
+            newDate=oldDateObject+ datetime.timedelta(days=1)
+            newDate_in_AriesFileFormat= datetime.datetime.strftime(newDate,"%m/%d/%y")
+        else:
+            newDate_in_AriesFileFormat=dateValue_in_AriesFileFormat
+        entry2=self.findGHAentry(ariesFileContent, newDate_in_AriesFileFormat, hour2)
         GHAaries1=entry1.split()[2]         #is a string
         GHAaries2=entry2.split()[2]         #is a string
         time_minutes=time.strptime(timeValue,"%H:%M:%S")[4]
         time_seconds=time.strptime(timeValue,"%H:%M:%S")[5]
-        s=time_minutes*60+time_seconds
+        s=time_minutes*60.0 + time_seconds
         GHAaries1=self.convertAngleStr_AngleFloat(GHAaries1)
         GHAaries2=self.convertAngleStr_AngleFloat(GHAaries2)
         GHAaries_float=GHAaries1+ abs(GHAaries2-GHAaries1) * (s/3600.0)
-        return GHAaries_float
+        GHAaries_str=self.convertAngleFloat_AngleStr(GHAaries_float)
+        return GHAaries_str
     
     def findGHAentry(self, list_of_Lines, date_in_AriesFileFormat, hour_int):
-        result=None    
+        result=None 
         for lineIndex in range(0,len(list_of_Lines)):
             line=list_of_Lines[lineIndex]
-            if line.find(date_in_AriesFileFormat):
+            if line.find(date_in_AriesFileFormat) >-1:
                 alist_of_oneLineContent=line.split()
                 hourStr=alist_of_oneLineContent[1]
                 if hourStr==str(hour_int):
