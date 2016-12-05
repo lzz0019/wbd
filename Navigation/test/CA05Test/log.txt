@@ -71,3 +71,39 @@ Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA0
 Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA05_300_ValidSightingFile.xml
 Star file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Stars.txt
 Aries file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Aries.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/log.txt
+Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA05_300_ValidSightingFile.xml
+Star file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Stars.txt
+Aries file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Aries.txt
+Pollux	2017-04-17	23:50:14	15d1.5	27d59.1	87d30.8	0d0.0	0d0.0	61d59.6	-770
+Sighting errors:	0
+Approximate latitude:	6d1.6	Approximate longitude:	348d40.2
+End of sighting file CA05_300_ValidSightingFile.xml
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/log.txt
+Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA05_300_ValidSightingFile.xml
+Star file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Stars.txt
+Aries file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Aries.txt
+Pollux	2017-04-17	23:50:14	15d1.5	27d59.1	87d30.8	N27d59.5	85d33.4	7d21.1	-2919
+Sighting errors:	0
+Approximate latitude:	N20d15.5	Approximate longitude:	79d19.9
+End of sighting file CA05_300_ValidSightingFile.xml
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/log.txt
+Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA05_300_ValidSightingFile.xml
+Star file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Stars.txt
+Aries file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Aries.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/log.txt
+Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA05_300_ValidSightingFile.xml
+Star file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Stars.txt
+Aries file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Aries.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/log.txt
+Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA05_300_ValidSightingFile.xml
+Star file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Stars.txt
+Aries file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Aries.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/log.txt
+Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA05_300_ValidSightingFile.xml
+Star file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Stars.txt
+Aries file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Aries.txt
+Log file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/log.txt
+Sighting file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA05_300_ValidSightingFile.xml
+Star file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Stars.txt
+Aries file: /Users/lzz0019/git/SoftwareProcess/SoftwareProcess/Navigation/test/CA05Test/CA03_Valid_Aries.txt
